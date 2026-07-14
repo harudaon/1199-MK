@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Market Simulation Game PRO V3</title>
   
-  <!-- Google Fonts: 둥글면서도 신뢰감 있는 최고급 서체 조합 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -24,25 +22,18 @@
     }
   </script>
 
-  <!-- React 18 & ReactDOM 18 CDNs -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  
-  <!-- Babel Standalone for JSX compiler -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- GunDB CDN: 실시간 분산형 멀티 디바이스 연동 데이터베이스 -->
   <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 
   <style>
-    /* 에코드림볼드 분위기의 굵고 깔끔한 프리미엄 서체 스타일 */
     body {
       font-family: 'Nunito', 'Plus Jakarta Sans', -apple-system, sans-serif;
       font-weight: 800;
       background-color: #0A0E1A;
     }
 
-    /* 실시간 네온 점멸 애니메이션 (라운드 카드 제출용 신호등) */
     @keyframes customBlink {
       0%, 100% { opacity: 1; transform: scale(1); filter: brightness(1.2); }
       50% { opacity: 0.3; transform: scale(0.97); filter: brightness(0.8); }
@@ -55,139 +46,62 @@
       0%, 100% { box-shadow: 0 0 8px rgba(99, 102, 241, 0.4); border-color: rgba(99, 102, 241, 0.6); }
       50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8); border-color: rgba(99, 102, 241, 1); }
     }
-    .pulse-indigo-glowing {
-      animation: neonPulse 1.5s infinite ease-in-out;
-    }
+    .pulse-indigo-glowing { animation: neonPulse 1.5s infinite ease-in-out; }
 
     @keyframes cyanPulse {
       0%, 100% { box-shadow: 0 0 8px rgba(6, 182, 212, 0.4); border-color: rgba(6, 182, 212, 0.6); }
       50% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.8); border-color: rgba(6, 182, 212, 1); }
     }
-    .pulse-cyan-glowing {
-      animation: cyanPulse 1.5s infinite ease-in-out;
-    }
+    .pulse-cyan-glowing { animation: cyanPulse 1.5s infinite ease-in-out; }
 
     @keyframes emeraldPulse {
       0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); border-color: rgba(16, 185, 129, 0.6); }
       50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.8); border-color: rgba(16, 185, 129, 1); }
     }
-    .pulse-emerald-glowing {
-      animation: emeraldPulse 1.5s infinite ease-in-out;
-    }
+    .pulse-emerald-glowing { animation: emeraldPulse 1.5s infinite ease-in-out; }
 
-    /* 모바일 터치 하이라이트 투명화 및 안전 스크롤 패딩 */
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
-    .pb-safe {
-      padding-bottom: env(safe-area-inset-bottom);
-    }
+    * { -webkit-tap-highlight-color: transparent; }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
   </style>
 </head>
 <body class="min-h-screen text-[#E2E8F0] select-none pb-safe">
   
-  <!-- React Mount Point -->
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // 다기기(PC-Mobile) 연동을 위한 초고속 GunDB 노드 셋업
     const gun = Gun([
       'https://gun-manhattan.herokuapp.com/gun',
       'https://peer.wall.org/gun'
     ]);
 
-    // --- SVG Icons Pack ---
-    const ShieldIcon = () => (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-    );
+    const MASTER_LIST_KEY = 'market_sim_pro_v3_master_list_v4';
 
-    const UsersIcon = () => (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    );
+    const ShieldIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> );
+    const UsersIcon = () => ( <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg> );
+    const LockIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> );
+    const ClockIcon = ({ className }) => ( <svg className={`w-4 h-4 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
+    const PlayIcon = () => ( <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z" /></svg> );
+    const SquareIcon = () => ( <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z" /></svg> );
+    const AwardIcon = () => ( <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg> );
+    const CheckCircleIcon = ({ className = "w-4 h-4" }) => ( <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
+    const ChevronLeftIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> );
+    const ChevronRightIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg> );
+    const DownloadIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> );
+    const EditIcon = () => ( <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> );
+    const AlertIcon = () => ( <svg className="w-5 h-5 text-amber-400 mr-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> );
 
-    const LockIcon = () => (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-    );
-
-    const ClockIcon = ({ className }) => (
-      <svg className={`w-4 h-4 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    );
-
-    const PlayIcon = () => (
-      <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 5v14l11-7z" />
-      </svg>
-    );
-
-    const SquareIcon = () => (
-      <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6 6h12v12H6z" />
-      </svg>
-    );
-
-    const AwardIcon = () => (
-      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-      </svg>
-    );
-
-    const CheckCircleIcon = ({ className = "w-4 h-4" }) => (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    );
-
-    const ChevronLeftIcon = () => (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-      </svg>
-    );
-
-    const ChevronRightIcon = () => (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-      </svg>
-    );
-
-    const DownloadIcon = () => (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-      </svg>
-    );
-
-    const EditIcon = () => (
-      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-      </svg>
-    );
-
-    const AlertIcon = () => (
-      <svg className="w-5 h-5 text-amber-400 mr-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-    );
-
-    // --- MARKET STAGE CONFIGURATIONS ---
     const MARKET_STAGES = {
-      1: { name: "초기 시장 (R1~3)", rules: "최고 단독 +120, 최고 동점 +60 / 최저 단독 -60, 최저 동점 -30", color: "border-cyan-500/80 text-cyan-400 bg-cyan-950/40", glowColor: "rgba(6, 182, 212, 0.5)", hex: "#06B6D4" },
-      2: { name: "초기 시장 (R1~3)", rules: "최고 단독 +120, 최고 동점 +60 / 최저 단독 -60, 최저 동점 -30", color: "border-cyan-500/80 text-cyan-400 bg-cyan-950/40", glowColor: "rgba(6, 182, 212, 0.5)", hex: "#06B6D4" },
-      3: { name: "초기 시장 (R1~3)", rules: "최고 단독 +120, 최고 동점 +60 / 최저 단독 -60, 최저 동점 -30", color: "border-cyan-500/80 text-cyan-400 bg-cyan-950/40", glowColor: "rgba(6, 182, 212, 0.5)", hex: "#06B6D4" },
-      4: { name: "완전경쟁 시장 (R4~6)", rules: "최고 단독 +120, 최고 동점 0 / 최저 단독 -80, 최저 동점 0", color: "border-emerald-500/80 text-emerald-400 bg-emerald-950/40", glowColor: "rgba(16, 185, 129, 0.5)", hex: "#10B981" },
-      5: { name: "완전경쟁 시장 (R4~6)", rules: "최고 단독 +120, 최고 동점 0 / 최저 단독 -80, 최저 동점 0", color: "border-emerald-500/80 text-emerald-400 bg-emerald-950/40", glowColor: "rgba(16, 185, 129, 0.5)", hex: "#10B981" },
-      6: { name: "완전경쟁 시장 (R4~6)", rules: "최고 단독 +120, 최고 동점 0 / 최저 단독 -80, 최저 동점 0", color: "border-emerald-500/80 text-emerald-400 bg-emerald-950/40", glowColor: "rgba(16, 185, 129, 0.5)", hex: "#10B981" },
-      7: { name: "독점 시장 (R7~9)", rules: "최고 단독 +180 (동점 시 차순위 단독팀) / 최저 -120 / 중간 -40", color: "border-violet-500/80 text-violet-400 bg-violet-950/40", glowColor: "rgba(139, 92, 246, 0.5)", hex: "#8B5CF6" },
-      8: { name: "독점 시장 (R7~9)", rules: "최고 단독 +180 (동점 시 차순위 단독팀) / 최저 -120 / 중간 -40", color: "border-violet-500/80 text-violet-400 bg-violet-950/40", glowColor: "rgba(139, 92, 246, 0.5)", hex: "#8B5CF6" },
-      9: { name: "독점 시장 (R7~9)", rules: "최고 단독 +180 (동점 시 차순위 단독팀) / 최저 -120 / 중간 -40", color: "border-violet-500/80 text-violet-400 bg-violet-950/40", glowColor: "rgba(139, 92, 246, 0.5)", hex: "#8B5CF6" }
+      1: { name: "초기 시장 (R1~3)", rules: "최고 단독 +120, 최고 동점 +60 / 최저 단독 -60, 최저 동점 -30", color: "border-cyan-500/80 text-cyan-400 bg-cyan-950/40", hex: "#06B6D4" },
+      2: { name: "초기 시장 (R1~3)", rules: "최고 단독 +120, 최고 동점 +60 / 최저 단독 -60, 최저 동점 -30", color: "border-cyan-500/80 text-cyan-400 bg-cyan-950/40", hex: "#06B6D4" },
+      3: { name: "초기 시장 (R1~3)", rules: "최고 단독 +120, 최고 동점 +60 / 최저 단독 -60, 최저 동점 -30", color: "border-cyan-500/80 text-cyan-400 bg-cyan-950/40", hex: "#06B6D4" },
+      4: { name: "완전경쟁 시장 (R4~6)", rules: "최고 단독 +120, 최고 동점 0 / 최저 단독 -80, 최저 동점 0", color: "border-emerald-500/80 text-emerald-400 bg-emerald-950/40", hex: "#10B981" },
+      5: { name: "완전경쟁 시장 (R4~6)", rules: "최고 단독 +120, 최고 동점 0 / 최저 단독 -80, 최저 동점 0", color: "border-emerald-500/80 text-emerald-400 bg-emerald-950/40", hex: "#10B981" },
+      6: { name: "완전경쟁 시장 (R4~6)", rules: "최고 단독 +120, 최고 동점 0 / 최저 단독 -80, 최저 동점 0", color: "border-emerald-500/80 text-emerald-400 bg-emerald-950/40", hex: "#10B981" },
+      7: { name: "독점 시장 (R7~9)", rules: "최고 단독 +180 (동점 시 차순위 단독팀) / 최저 -120 / 중간 -40", color: "border-violet-500/80 text-violet-400 bg-violet-950/40", hex: "#8B5CF6" },
+      8: { name: "독점 시장 (R7~9)", rules: "최고 단독 +180 (동점 시 차순위 단독팀) / 최저 -120 / 중간 -40", color: "border-violet-500/80 text-violet-400 bg-violet-950/40", hex: "#8B5CF6" },
+      9: { name: "독점 시장 (R7~9)", rules: "최고 단독 +180 (동점 시 차순위 단독팀) / 최저 -120 / 중간 -40", color: "border-violet-500/80 text-violet-400 bg-violet-950/40", hex: "#8B5CF6" }
     };
 
     const createInitialDeck = () => {
@@ -228,33 +142,23 @@
       const sums = validSubmissions.map(s => s.sum);
       const maxSum = Math.max(...sums);
       const minSum = Math.min(...sums);
-
       const maxTeams = validSubmissions.filter(s => s.sum === maxSum);
       const minTeams = validSubmissions.filter(s => s.sum === minSum);
 
-      // R1~3 초기 시장
       if (round >= 1 && round <= 3) {
         validSubmissions.forEach(sub => {
           let earned = 0;
-          if (sub.sum === maxSum) {
-            earned = maxTeams.length === 1 ? 120 : 60;
-          } else if (sub.sum === minSum) {
-            earned = minTeams.length === 1 ? -60 : -30;
-          }
+          if (sub.sum === maxSum) earned = maxTeams.length === 1 ? 120 : 60;
+          else if (sub.sum === minSum) earned = minTeams.length === 1 ? -60 : -30;
           scores[sub.teamId] = earned;
         });
-      // R4~6 완전경쟁 시장
       } else if (round >= 4 && round <= 6) {
         validSubmissions.forEach(sub => {
           let earned = 0;
-          if (sub.sum === maxSum) {
-            earned = maxTeams.length === 1 ? 120 : 0;
-          } else if (sub.sum === minSum) {
-            earned = minTeams.length === 1 ? -80 : 0;
-          }
+          if (sub.sum === maxSum) earned = maxTeams.length === 1 ? 120 : 0;
+          else if (sub.sum === minSum) earned = minTeams.length === 1 ? -80 : 0;
           scores[sub.teamId] = earned;
         });
-      // R7~9 독점 시장
       } else if (round >= 7 && round <= 9) {
         let winnerId = null;
         if (maxTeams.length === 1) {
@@ -269,46 +173,44 @@
             }
           }
         }
-
         validSubmissions.forEach(sub => {
           let earned = -40;
-          if (sub.teamId === winnerId) {
-            earned = 180;
-          } else if (sub.sum === minSum) {
-            earned = -120;
-          }
+          if (sub.teamId === winnerId) earned = 180;
+          else if (sub.sum === minSum) earned = -120;
           scores[sub.teamId] = earned;
         });
       }
 
       submissions.forEach(sub => {
-        if (!sub.valid) {
-          scores[sub.teamId] = -100; // 미제출 실격 패널티
-        }
+        if (!sub.valid) scores[sub.teamId] = -100;
       });
 
       return scores;
     };
 
     function App() {
-      // 메인 가상 세션 통합 로컬상태
       const [gameState, setGameState] = useState({
         gameCode: '',
+        courseName: '',
         isStarted: false,
-        isSetupFormVisible: false, // 선 개설 후 세팅 워크플로우 통제
         currentRound: 1,
         teams: [],
-        status: 'idle', // 'idle' | 'submitting' | 'closed' | 'revealed' | 'ended'
+        status: 'idle', 
         timer: 180,
         timerActive: false,
       });
 
-      const [userRole, setUserRole] = useState('landing'); // 'landing' | 'admin' | 'participant_join_flow' | 'participant_select_team' | 'gameplay'
+      const [userRole, setUserRole] = useState('landing'); 
       const [selectedTeamId, setSelectedTeamId] = useState('');
       const [adminPassword, setAdminPassword] = useState('');
       const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
       const [joinGameCode, setJoinGameCode] = useState('');
-      const [setupTeamCount, setSetupTeamCount] = useState(4); // 기본 참가그룹 수 설정값
+      
+      // Admin Dashboard States
+      const [adminSessions, setAdminSessions] = useState({});
+      const [isCreateGameModalOpen, setIsCreateGameModalOpen] = useState(false);
+      const [newCourseName, setNewCourseName] = useState('');
+      const [newTeamCount, setNewTeamCount] = useState(4);
       
       const [toast, setToast] = useState(null);
       const [selectedCards, setSelectedCards] = useState([]);
@@ -316,7 +218,6 @@
       const [editScoreValue, setEditScoreValue] = useState('');
       const [showRoundResultPopup, setShowRoundResultPopup] = useState(false);
 
-      // custom alert / confirm 모달 상태제어
       const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
@@ -324,37 +225,43 @@
         onConfirm: null
       });
 
-      // GunDB 기기간 브로드캐스팅 및 수신 채널 연동
+      useEffect(() => {
+        if (userRole === 'admin_dashboard') {
+          const listRef = gun.get(MASTER_LIST_KEY);
+          const handler = (data, key) => {
+            setAdminSessions(prev => {
+              const next = { ...prev };
+              if (data && data !== "null") {
+                try {
+                   next[key] = JSON.parse(data);
+                } catch(e) {}
+              } else {
+                delete next[key];
+              }
+              return next;
+            });
+          };
+          listRef.map().on(handler);
+        }
+      }, [userRole]);
+
       useEffect(() => {
         if (!gameState.gameCode) return;
 
-        // 글로벌 시뮬레이션 상태 감시 및 수신 동기화
         const globalStateRef = gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state');
         
         globalStateRef.on((data) => {
-          if (data) {
+          if (data && data !== "null") {
             try {
               const parsed = JSON.parse(data);
-              setGameState(prev => {
-                // 관리자가 기획 단계일 때는 동기화 오버라이드를 피함
-                if (prev.isSetupFormVisible && !parsed.isStarted) {
-                  return prev;
-                }
-                return {
-                  ...prev,
-                  ...parsed
-                };
-              });
-            } catch (err) {
-              console.error("GunDB sync JSON parse error", err);
-            }
+              setGameState(prev => ({ ...prev, ...parsed }));
+            } catch (err) {}
           }
         });
 
-        // 타이머 동적 싱크 채널 감시
         const timerRef = gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('timer_sync');
         timerRef.on((data) => {
-          if (data) {
+          if (data && data !== "null") {
             try {
               const syncTimerObj = JSON.parse(data);
               setGameState(prev => ({
@@ -366,14 +273,12 @@
           }
         });
 
-        // 개별 참가자 카드 제출 채널 경청 및 누계 통합 (Admin 전용)
         if (userRole === 'admin') {
           gameState.teams.forEach(team => {
             gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get(`team_sub_${team.id}`).on((data) => {
               if (data) {
                 try {
                   const subData = JSON.parse(data);
-                  // 현재 라운드 제출 데이터인지 대조 검증
                   if (subData.round === gameState.currentRound) {
                     setGameState(prev => {
                       const foundTeam = prev.teams.find(t => t.id === team.id);
@@ -401,13 +306,7 @@
                       });
 
                       const nextState = { ...prev, teams: nextTeams };
-                      // 변경사항을 타 기기에 안전하게 재전송
-                      globalStateRef.put(JSON.stringify({
-                        currentRound: nextState.currentRound,
-                        isStarted: nextState.isStarted,
-                        teams: nextState.teams,
-                        status: nextState.status
-                      }));
+                      globalStateRef.put(JSON.stringify(nextState));
                       return nextState;
                     });
                   }
@@ -423,7 +322,6 @@
         };
       }, [gameState.gameCode, userRole, gameState.currentRound]);
 
-      // 강사 통제 PC가 타이머의 유일 마스터 클록을 운영
       useEffect(() => {
         let interval = null;
         if (userRole === 'admin' && gameState.timerActive && gameState.timer > 0 && gameState.status === 'submitting') {
@@ -432,7 +330,6 @@
               const nextTimer = prev.timer - 1;
               const nextActive = nextTimer > 0;
               let nextStatus = prev.status;
-
               let finalState = { ...prev, timer: nextTimer, timerActive: nextActive };
 
               if (nextTimer <= 0) {
@@ -440,7 +337,6 @@
                 nextStatus = 'closed';
               }
 
-              // 클라우드 실시간 동기화 데이터베이스 전송
               gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('timer_sync').put(JSON.stringify({
                 timer: nextTimer,
                 timerActive: nextActive
@@ -448,13 +344,10 @@
 
               if (nextTimer <= 0) {
                 gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-                  currentRound: finalState.currentRound,
-                  isStarted: finalState.isStarted,
-                  teams: finalState.teams,
+                  ...finalState,
                   status: nextStatus
                 }));
               }
-
               return finalState;
             });
           }, 1000);
@@ -462,7 +355,6 @@
         return () => clearInterval(interval);
       }, [gameState.timerActive, gameState.timer, gameState.status, userRole]);
 
-      // 결과 발표 시 모바일에 자동 팝업 연동 트리거
       useEffect(() => {
         if (gameState.status === 'revealed' && userRole === 'gameplay' && selectedTeamId) {
           setShowRoundResultPopup(true);
@@ -471,7 +363,6 @@
         }
       }, [gameState.status, gameState.currentRound, userRole, selectedTeamId]);
 
-      // 커스텀 확인 창 호출 핸들러
       const triggerConfirm = (title, message, onConfirmAction) => {
         setConfirmModal({
           isOpen: true,
@@ -486,12 +377,9 @@
 
       const showToast = (message, type = 'info') => {
         setToast({ message, type });
-        setTimeout(() => {
-          setToast(null);
-        }, 4000);
+        setTimeout(() => setToast(null), 4000);
       };
 
-      // 미제출 팀 자동 구제용 폴백 전술 제출 알고리즘
       const autoSubmitUnsubmittedTeams = (currentState) => {
         const round = currentState.currentRound;
         const updatedTeams = currentState.teams.map(team => {
@@ -504,7 +392,6 @@
               const autoCards = [sortedDeck[0], sortedDeck[1]];
               const autoCardIds = autoCards.map(c => c.id);
               const nextDeck = team.deck.filter(dc => !autoCardIds.includes(dc.id));
-              
               return {
                 ...team,
                 deck: nextDeck,
@@ -518,65 +405,49 @@
                   }
                 }
               };
-            } else {
-              return {
-                ...team,
-                history: {
-                  ...team.history,
-                  [round]: {
-                    cards: [{ value: 1, color: 'red' }, { value: 1, color: 'black' }],
-                    score: 0,
-                    isAuto: true,
-                    sum: 2
-                  }
-                }
-              };
             }
           }
           return team;
         });
 
-        return {
-          ...currentState,
-          teams: updatedTeams,
-          status: 'closed',
-          timerActive: false
-        };
+        return { ...currentState, teams: updatedTeams, status: 'closed', timerActive: false };
       };
 
-      // 1단계: 강사용 6자리 세션 코드 생성 (선 개설 프로세스)
-      const handlePreCreateSession = () => {
+      const handleAdminAuthSubmit = (e) => {
+        e.preventDefault();
+        if (adminPassword === '0321') {
+          setUserRole('admin_dashboard');
+          setIsPasswordModalOpen(false);
+          setAdminPassword('');
+          showToast("관리자 인증 완료. 세션 대시보드로 이동합니다.");
+        } else {
+          showToast("비밀번호가 올바르지 않습니다.", "error");
+        }
+      };
+
+      const handleCreateSessionSubmit = () => {
+        if (!newCourseName.trim()) {
+          showToast("과정명을 입력해주세요.", "error");
+          return;
+        }
+        
         const code = generateGameCode();
-        setGameState({
-          gameCode: code,
-          isStarted: false,
-          isSetupFormVisible: true,
-          currentRound: 1,
-          teams: [],
-          status: 'idle',
-          timer: 180,
-          timerActive: false,
-        });
-        showToast(`세션 코드 ${code}가 정상 예약되었습니다. 참가팀 수를 지정하십시오.`);
-      };
-
-      // 2단계: 팀규모(2~12 홀/짝) 세팅 완료 및 최종 가동
-      const handleFinalCommenceSimulation = () => {
         const generatedTeams = [];
-        for (let i = 1; i <= setupTeamCount; i++) {
+        for (let i = 1; i <= newTeamCount; i++) {
           generatedTeams.push({
             id: `team-${i}-${Date.now()}`,
-            name: `${i}팀 (Team ${i})`,
+            name: `${i}팀`,
             score: 0,
             deck: createInitialDeck(),
-            history: {}
+            history: {},
+            isOccupied: false
           });
         }
-
+        
         const initializedState = {
-          gameCode: gameState.gameCode,
+          gameCode: code,
+          courseName: newCourseName,
           isStarted: true,
-          isSetupFormVisible: false,
           currentRound: 1,
           teams: generatedTeams,
           status: 'idle',
@@ -584,11 +455,58 @@
           timerActive: false,
         };
 
-        setGameState(initializedState);
+        gun.get('market_sim_pro_v3_session_' + code).get('global_state').put(JSON.stringify(initializedState));
+        
+        gun.get(MASTER_LIST_KEY).get(code).put(JSON.stringify({
+          gameCode: code,
+          courseName: newCourseName,
+          teamCount: newTeamCount,
+          createdAt: Date.now()
+        }));
 
-        // GunDB에 실시간 세션 가동 데이터 등록
-        gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state').put(JSON.stringify(initializedState));
-        showToast("비즈니스 시뮬레이션이 공식 가동되었습니다. 참가자 기기가 활성화됩니다!");
+        showToast(`[${newCourseName}] 개설 완료 (코드: ${code})`);
+        setIsCreateGameModalOpen(false);
+      };
+
+      const handleParticipantJoin = (e) => {
+        e.preventDefault();
+        const codeUpper = joinGameCode.trim().toUpperCase();
+        
+        if(!codeUpper) return;
+
+        gun.get(MASTER_LIST_KEY).get(codeUpper).once((masterDataStr) => {
+          if (masterDataStr && masterDataStr !== "null") {
+            try {
+              const masterData = JSON.parse(masterDataStr);
+              if (masterData && masterData.gameCode === codeUpper) {
+                gun.get('market_sim_pro_v3_session_' + codeUpper).get('global_state').once((data) => {
+                  if (data && data !== "null") {
+                    try {
+                      const sessionObj = JSON.parse(data);
+                      if (sessionObj && sessionObj.gameCode === codeUpper) {
+                        setGameState(sessionObj);
+                        setUserRole('participant_select_team');
+                        showToast("세션 검증 완료. 소속 그룹을 선택하십시오.");
+                      } else {
+                        showToast("세션 데이터가 일치하지 않습니다.", "error");
+                      }
+                    } catch(err) {
+                      showToast("세션 연결에 실패했습니다.", "error");
+                    }
+                  } else {
+                    showToast("게임 세션 데이터를 아직 불러오지 못했습니다. 다시 시도해주세요.", "warning");
+                  }
+                });
+              } else {
+                showToast("등록되지 않은 비활성 게임 코드입니다.", "error");
+              }
+            } catch(err) {
+              showToast("세션 정보를 확인할 수 없습니다.", "error");
+            }
+          } else {
+            showToast("현재 개설되어 진행중인 세션 코드가 아닙니다.", "error");
+          }
+        });
       };
 
       const handleUpdateTeamName = (teamId, newName) => {
@@ -596,15 +514,10 @@
         const nextTeams = gameState.teams.map(t => t.id === teamId ? { ...t, name: newName } : t);
         setGameState(prev => {
           const next = { ...prev, teams: nextTeams };
-          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-            currentRound: next.currentRound,
-            isStarted: next.isStarted,
-            teams: next.teams,
-            status: next.status
-          }));
+          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           return next;
         });
-        showToast("팀명이 성공적으로 수정 동기화되었습니다.");
+        showToast("팀명이 성공적으로 수정되었습니다.");
       };
 
       const adjustTimer = (amount) => {
@@ -616,7 +529,6 @@
           }));
           return { ...prev, timer: nextTime };
         });
-        showToast(`시간이 ${amount > 0 ? '+' : ''}${amount}초 보정되었습니다.`);
       };
 
       const toggleTimerPause = () => {
@@ -628,43 +540,32 @@
           }));
           return { ...prev, timerActive: nextActive };
         });
-        showToast(gameState.timerActive ? "타이머가 일시 정지되었습니다." : "타이머를 재개합니다.");
       };
 
       const handleStartSubmission = () => {
         setGameState(prev => {
           const next = { ...prev, status: 'submitting', timer: 180, timerActive: true };
-          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-            currentRound: next.currentRound,
-            isStarted: next.isStarted,
-            teams: next.teams,
-            status: next.status
-          }));
+          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('timer_sync').put(JSON.stringify({
             timer: 180,
             timerActive: true
           }));
           return next;
         });
-        showToast("의사결정이 개시되었습니다. 카드 조작 권한이 허가되었습니다.");
+        showToast("의사결정이 개시되었습니다.");
       };
 
       const handleCloseSubmission = () => {
         setGameState(prev => {
           const next = autoSubmitUnsubmittedTeams(prev);
-          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-            currentRound: next.currentRound,
-            isStarted: next.isStarted,
-            teams: next.teams,
-            status: 'closed'
-          }));
+          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('timer_sync').put(JSON.stringify({
             timer: 0,
             timerActive: false
           }));
-          return { ...next, status: 'closed' };
+          return next;
         });
-        showToast("의사결정이 강제 조기 마감되었습니다.");
+        showToast("의사결정이 마감되었습니다.");
       };
 
       const handleRevealResults = () => {
@@ -678,52 +579,30 @@
             return {
               ...t,
               score: t.score + earned,
-              history: {
-                ...t.history,
-                [round]: {
-                  ...currentHist,
-                  score: earned
-                }
-              }
+              history: { ...t.history, [round]: { ...currentHist, score: earned } }
             };
           });
 
           const next = { ...prev, teams: updatedTeams, status: 'revealed' };
-          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-            currentRound: next.currentRound,
-            isStarted: next.isStarted,
-            teams: next.teams,
-            status: 'revealed'
-          }));
+          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           return next;
         });
-        showToast("전체 경쟁 그룹의 손익 대조 정산이 완료되었습니다!");
+        showToast("그룹 손익 대조 정산 완료!");
       };
 
       const handleNextRound = () => {
         if (gameState.currentRound >= 9) {
           setGameState(prev => {
             const next = { ...prev, status: 'ended' };
-            gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-              currentRound: next.currentRound,
-              isStarted: next.isStarted,
-              teams: next.teams,
-              status: 'ended'
-            }));
+            gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
             return next;
           });
-          showToast("모든 시장 시뮬레이션 일정이 최종 종결되었습니다.");
           return;
         }
 
         setGameState(prev => {
           const next = { ...prev, currentRound: prev.currentRound + 1, status: 'idle', timer: 180, timerActive: false };
-          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-            currentRound: next.currentRound,
-            isStarted: next.isStarted,
-            teams: next.teams,
-            status: 'idle'
-          }));
+          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           return next;
         });
         setSelectedCards([]);
@@ -743,23 +622,13 @@
             delete nextHistory[prev.currentRound];
             delete nextHistory[prevRound];
 
-            return {
-              ...t,
-              score: restoredScore,
-              history: nextHistory
-            };
+            return { ...t, score: restoredScore, history: nextHistory };
           });
 
           const next = { ...prev, currentRound: prevRound, status: 'idle', teams: updatedTeams, timer: 180, timerActive: false };
-          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-            currentRound: next.currentRound,
-            isStarted: next.isStarted,
-            teams: next.teams,
-            status: 'idle'
-          }));
+          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           return next;
         });
-        showToast(`${prevRound}라운드로 상태를 성공적으로 되돌렸습니다.`);
       };
 
       const handleManualScoreEdit = () => {
@@ -779,89 +648,43 @@
               return {
                 ...t,
                 score: t.score + diff,
-                history: {
-                  ...t.history,
-                  [round]: {
-                    ...currentHist,
-                    score: value
-                  }
-                }
+                history: { ...t.history, [round]: { ...currentHist, score: value } }
               };
             }
             return t;
           });
           const next = { ...prev, teams: updatedTeams };
-          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify({
-            currentRound: next.currentRound,
-            isStarted: next.isStarted,
-            teams: next.teams,
-            status: next.status
-          }));
+          gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           return next;
         });
 
         setEditingScoreTeamId(null);
         setEditScoreValue('');
-        showToast("점수 임의 보정이 성공적으로 적용되었습니다.");
+        showToast("점수 보정이 적용되었습니다.");
       };
 
       const handleResetGame = () => {
-        triggerConfirm("경고: 전역 리셋", "주의! 데이터와 참가팀 설정이 완전히 포맷됩니다. 진행하시겠습니까?", () => {
-          const emptyState = {
-            gameCode: '',
-            isStarted: false,
-            isSetupFormVisible: false,
+        triggerConfirm("경고: 진행 데이터 초기화", "주의! 현재 세션의 모든 라운드 진행 상황과 점수가 1라운드로 완전히 포맷됩니다. 그룹 설정은 유지됩니다. 진행하시겠습니까?", () => {
+          const generatedTeams = gameState.teams.map(t => ({
+            ...t,
+            score: 0,
+            deck: createInitialDeck(),
+            history: {},
+            isOccupied: false
+          }));
+
+          const resetState = {
+            ...gameState,
             currentRound: 1,
-            teams: [],
+            teams: generatedTeams,
             status: 'idle',
             timer: 180,
             timerActive: false,
           };
-          if (gameState.gameCode) {
-            gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state').put(JSON.stringify(emptyState));
-          }
-          setGameState(emptyState);
-          setUserRole('landing');
-          setSelectedTeamId('');
-          setSelectedCards([]);
-          showToast("시뮬레이션 장치 상태가 초기화되었습니다.");
-        });
-      };
-
-      const handleAdminAuthSubmit = (e) => {
-        e.preventDefault();
-        if (adminPassword === '0321') {
-          setUserRole('admin');
-          setIsPasswordModalOpen(false);
-          setAdminPassword('');
-          showToast("관리자 인증 완료. 강사 제어 센터가 활성화되었습니다.");
-        } else {
-          showToast("비밀번호가 올바르지 않습니다.", "error");
-        }
-      };
-
-      const handleParticipantJoin = (e) => {
-        e.preventDefault();
-        const codeUpper = joinGameCode.toUpperCase();
-        
-        // 실시간 연동 DB 검사 트리거
-        gun.get('market_sim_pro_v3_session_' + codeUpper).get('global_state').once((data) => {
-          if (data) {
-            try {
-              const sessionObj = JSON.parse(data);
-              if (sessionObj && sessionObj.gameCode === codeUpper) {
-                setGameState(sessionObj);
-                setUserRole('participant_select_team');
-                showToast("세션 검증 완료. 소속 그룹을 선택하십시오.");
-              } else {
-                showToast("등록되지 않은 비활성 게임 코드입니다.", "error");
-              }
-            } catch(err) {
-              showToast("세션 복합 연결 실패", "error");
-            }
-          } else {
-            showToast("현재 개설되어 진행중인 세션이 없습니다.", "error");
-          }
+          
+          gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state').put(JSON.stringify(resetState));
+          setGameState(resetState);
+          showToast("세션 진행 데이터가 성공적으로 초기화되었습니다.");
         });
       };
 
@@ -873,17 +696,12 @@
         if (hasSubmitted) return;
 
         setSelectedCards(prev => {
-          if (prev.some(c => c.id === card.id)) {
-            return prev.filter(c => c.id !== card.id);
-          }
-          if (prev.length >= 2) {
-            return [prev[1], card];
-          }
+          if (prev.some(c => c.id === card.id)) return prev.filter(c => c.id !== card.id);
+          if (prev.length >= 2) return [prev[1], card];
           return [...prev, card];
         });
       };
 
-      // 기밀 전술 카드 전송 처리
       const handlePromptSubmitCards = () => {
         if (selectedCards.length !== 2) {
           showToast("카드 2장을 선택해 주십시오.", "error");
@@ -896,13 +714,11 @@
           () => {
             const round = gameState.currentRound;
             
-            // GunDB 학생 전송 채널에 기밀 데이터 격상 등록
             gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get(`team_sub_${selectedTeamId}`).put(JSON.stringify({
               round: round,
               cards: selectedCards.map(sc => ({ value: sc.value, color: sc.color }))
             }));
 
-            // 로컬 상태 가시 업데이트
             setGameState(prev => {
               const nextTeams = prev.teams.map(t => {
                 if (t.id === selectedTeamId) {
@@ -928,7 +744,7 @@
             });
 
             setSelectedCards([]);
-            showToast("경영 의사결정이 보안 클라우드 데이터베이스에 등재되었습니다.");
+            showToast("의사결정이 전송되었습니다.");
           }
         );
       };
@@ -936,7 +752,6 @@
       const handleExportCSV = () => {
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
         csvContent += "순위,그룹명,누적 성과 스코어,남은 카드 개수\n";
-
         const sortedTeams = [...gameState.teams].sort((a, b) => b.score - a.score);
         sortedTeams.forEach((t, index) => {
           csvContent += `${index + 1},${t.name},${t.score},${t.deck.length}장\n`;
@@ -945,11 +760,10 @@
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Market_Leaderboard_Round_${gameState.currentRound}.csv`);
+        link.setAttribute("download", `Market_Leaderboard_${gameState.courseName}_Round_${gameState.currentRound}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        showToast("종합 리포트 CSV 다운로드가 완료되었습니다.");
       };
 
       const currentStageInfo = MARKET_STAGES[gameState.currentRound] || { name: "종료", rules: "", color: "" };
@@ -957,12 +771,9 @@
       return (
         <div className="min-h-screen bg-[#0A0E1A] text-[#E2E8F0] flex flex-col selection:bg-[#1E294B] selection:text-white pb-safe">
           
-          {/* HEADER BAR */}
           <header className="sticky top-0 z-40 bg-[#0A0E1A]/95 border-b border-[#1E294B]/80 backdrop-blur-md px-4 py-3 flex items-center justify-between shadow-lg">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-black text-sm tracking-tighter shadow-md">
-                M
-              </div>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-black text-sm tracking-tighter shadow-md">M</div>
               <div>
                 <h1 className="text-xs font-black text-white tracking-tight uppercase flex items-center">
                   <span>Market Simulation</span>
@@ -971,23 +782,49 @@
               </div>
             </div>
 
-            {/* EXIT TO LOBBY BUTTON */}
             {userRole !== 'landing' && (
               <button
                 onClick={() => {
-                  triggerConfirm("대기실 이동", "현재 대시보드를 이탈하고 처음 로비 화면으로 이동하시겠습니까?", () => {
-                    setUserRole('landing');
+                  let title = "대기실 이동";
+                  let msg = "처음 로비 화면으로 이동하시겠습니까?";
+                  
+                  if (userRole === 'admin') {
+                    title = "대시보드 이동";
+                    msg = "게임 제어 화면을 이탈하여 세션 목록 대시보드로 이동하시겠습니까?";
+                  } else if (userRole === 'admin_dashboard') {
+                    title = "로그아웃";
+                    msg = "강사 관리자 화면에서 로그아웃 하시겠습니까?";
+                  }
+
+                  triggerConfirm(title, msg, () => {
+                    if (userRole === 'gameplay' && selectedTeamId) {
+                      const nextTeams = gameState.teams.map(t => t.id === selectedTeamId ? { ...t, isOccupied: false } : t);
+                      const nextState = { ...gameState, teams: nextTeams };
+                      gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state').put(JSON.stringify(nextState));
+                    }
+                    
+                    const emptyState = { gameCode: '', courseName: '', isStarted: false, currentRound: 1, teams: [], status: 'idle', timer: 180, timerActive: false };
+                    
+                    if (userRole === 'admin') {
+                      setUserRole('admin_dashboard');
+                      setGameState(emptyState);
+                    } else if (userRole === 'admin_dashboard') {
+                      setUserRole('landing');
+                      setGameState(emptyState);
+                    } else {
+                      setUserRole('landing');
+                      setGameState(emptyState);
+                    }
                     setSelectedTeamId('');
                   });
                 }}
                 className="px-2.5 py-1.5 bg-[#161D30] hover:bg-red-950/40 text-slate-300 hover:text-red-400 border border-[#1E294D] rounded-xl text-[10px] font-black transition-colors"
               >
-                대기실 이동
+                {userRole === 'admin' ? '대시보드 이동' : userRole === 'admin_dashboard' ? '로그아웃' : '대기실 이동'}
               </button>
             )}
           </header>
 
-          {/* REALTIME TOAST ALERTS */}
           {toast && (
             <div className="fixed top-16 right-4 left-4 sm:left-auto sm:w-80 z-50">
               <div className={`flex items-center space-x-2.5 px-4 py-3 rounded-xl border shadow-2xl text-[11px] font-black tracking-wide ${
@@ -1001,151 +838,54 @@
             </div>
           )}
 
-          {}
-          {/* CUSTOM CONFIRMATION DIALOG MODAL */}
           {confirmModal.isOpen && (
             <div className="fixed inset-0 bg-[#060810]/85 backdrop-blur-xs flex items-center justify-center z-50 p-4">
               <div className="bg-[#121829] border border-[#1E294D] rounded-2xl p-5 max-w-sm w-full shadow-2xl relative">
-                <div className="mx-auto w-8 h-8 bg-amber-950/50 border border-amber-500/30 text-amber-400 rounded-full flex items-center justify-center mb-3">
-                  <AlertIcon />
-                </div>
+                <div className="mx-auto w-8 h-8 bg-amber-950/50 border border-amber-500/30 text-amber-400 rounded-full flex items-center justify-center mb-3"><AlertIcon /></div>
                 <h4 className="text-xs font-black text-white text-center mb-1">{confirmModal.title}</h4>
                 <p className="text-[10px] text-slate-400 text-center mb-5 leading-relaxed">{confirmModal.message}</p>
                 <div className="flex space-x-2">
-                  <button
-                    onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                    className="flex-1 py-2 bg-[#161D30] hover:bg-[#1E294B] text-slate-400 rounded-xl text-[10px] font-black transition-colors"
-                  >
-                    취소
-                  </button>
-                  <button
-                    onClick={confirmModal.onConfirm}
-                    className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black transition-colors shadow-md"
-                  >
-                    확인
-                  </button>
+                  <button onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} className="flex-1 py-2 bg-[#161D30] hover:bg-[#1E294B] text-slate-400 rounded-xl text-[10px] font-black transition-colors">취소</button>
+                  <button onClick={confirmModal.onConfirm} className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black transition-colors shadow-md">확인</button>
                 </div>
               </div>
             </div>
           )}
 
           {}
-          {/* LANDING PAGE - DUAL BUTTON DIVISION (1/3 EXACT SCALE) */}
           {userRole === 'landing' && (
             <div className="flex-grow flex items-center justify-center px-4 py-12">
               <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 md:p-8 shadow-2xl relative overflow-hidden text-center">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-cyan-500 to-violet-500"></div>
-                
                 <div className="mb-8">
-                  <div className="w-12 h-12 bg-indigo-950/50 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <UsersIcon />
-                  </div>
+                  <div className="w-12 h-12 bg-indigo-950/50 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-3"><UsersIcon /></div>
                   <h2 className="text-lg font-black tracking-tight text-white uppercase">Market Simulation</h2>
                   <p className="text-[10px] text-slate-400 mt-1 font-bold">임직원 핵심 경영 의사결정 비즈니스 플랫폼</p>
                 </div>
-
                 <div className="space-y-4 flex flex-col items-center">
-                  
-                  {/* Participant Button - Extremely Large & Prominent */}
-                  <button
-                    onClick={() => setUserRole('participant_join_flow')}
-                    className="w-full max-w-sm h-24 bg-gradient-to-br from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-900/30 hover:shadow-cyan-900/40 transition-all flex flex-col items-center justify-center space-y-1 transform active:scale-[0.98]"
-                  >
+                  <button onClick={() => setUserRole('participant_join_flow')} className="w-full max-w-sm h-24 bg-gradient-to-br from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-900/30 transition-all flex flex-col items-center justify-center space-y-1 transform active:scale-[0.98]">
                     <span className="text-lg font-extrabold tracking-wide">👥 참가자(팀) 접속하기</span>
-                    <span className="text-[10px] text-indigo-200 font-medium">부여받은 6자리 세션 코드로 입장</span>
+                    <span className="text-[10px] text-indigo-200 font-medium">강사에게 부여받은 세션 코드로 입장</span>
                   </button>
-
-                  <div className="w-full max-w-sm flex py-1 items-center justify-center">
-                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">or</span>
-                  </div>
-
-                  {/* Admin Button - Exactly 1/3 scale of participant button, elegant design */}
-                  <button
-                    onClick={() => setIsPasswordModalOpen(true)}
-                    className="w-full max-w-sm h-8 bg-[#161D30] hover:bg-[#1F294D] text-slate-400 hover:text-slate-200 border border-[#1E294D] rounded-xl text-xs font-bold transition-all flex items-center justify-center transform active:scale-[0.98]"
-                  >
-                    <ShieldIcon />
-                    <span className="ml-1.5 font-black text-[11px] tracking-tight">강사 통제반 (Admin) 접속</span>
+                  <div className="w-full max-w-sm flex py-1 items-center justify-center"><span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">or</span></div>
+                  <button onClick={() => setIsPasswordModalOpen(true)} className="w-full max-w-sm h-8 bg-[#161D30] hover:bg-[#1F294D] text-slate-400 hover:text-slate-200 border border-[#1E294D] rounded-xl text-xs font-bold transition-all flex items-center justify-center transform active:scale-[0.98]">
+                    <ShieldIcon /><span className="ml-1.5 font-black text-[11px] tracking-tight">강사 통제반 (Admin) 접속</span>
                   </button>
-
                 </div>
               </div>
             </div>
           )}
 
-          {/* ADMIN PASSWORD GATE */}
           {isPasswordModalOpen && (
             <div className="fixed inset-0 bg-[#060810]/85 backdrop-blur-xs flex items-center justify-center z-50 p-4">
               <div className="bg-[#121829] border border-[#1E294D] rounded-2xl p-6 max-w-sm w-full shadow-2xl relative">
-                <h3 className="text-xs font-black text-white mb-1.5 flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 mr-2 animate-pulse"></span>
-                  강사 통제 인증 비밀번호
-                </h3>
-                <p className="text-[10px] text-slate-400 mb-4 leading-relaxed font-semibold">
-                  본 시스템은 교육 운영 보호용 세션입니다. 인가된 전용 비밀번호를 입력해 주십시오.
-                </p>
+                <h3 className="text-xs font-black text-white mb-1.5 flex items-center"><span className="w-2 h-2 rounded-full bg-indigo-500 mr-2 animate-pulse"></span>강사 통제 인증 비밀번호</h3>
+                <p className="text-[10px] text-slate-400 mb-4 leading-relaxed font-semibold">교육 운영 보호용 세션입니다. 인가된 비밀번호를 입력해 주십시오.</p>
                 <form onSubmit={handleAdminAuthSubmit} className="space-y-4">
-                  <input
-                    type="password"
-                    required
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="비밀번호 입력"
-                    className="w-full px-3.5 py-2.5 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-xs font-black outline-none focus:border-indigo-500 text-center font-mono"
-                  />
+                  <input type="password" required value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} placeholder="비밀번호 입력" className="w-full px-3.5 py-2.5 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-xs font-black outline-none focus:border-indigo-500 text-center font-mono" />
                   <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsPasswordModalOpen(false);
-                        setAdminPassword('');
-                      }}
-                      className="flex-1 py-2.5 bg-[#161D30] hover:bg-[#1E294B] text-slate-400 rounded-xl text-xs font-black transition-colors"
-                    >
-                      돌아가기
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors shadow-md"
-                    >
-                      인증하기
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* PARTICIPANT JOIN FLOW - INPUT SESSION CODE */}
-          {userRole === 'participant_join_flow' && (
-            <div className="flex-grow flex items-center justify-center px-4 py-12">
-              <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 shadow-xl text-center">
-                <h3 className="text-sm font-black text-white mb-2">시뮬레이션 세션 참가</h3>
-                <p className="text-[11px] text-slate-400 mb-6 leading-relaxed font-semibold">강사 전용 화면에 활성화되어 있는 6자리 세션 참가 코드(예: MK2047)를 기입하십시오.</p>
-                <form onSubmit={handleParticipantJoin} className="space-y-4">
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={joinGameCode}
-                    onChange={(e) => setJoinGameCode(e.target.value)}
-                    placeholder="MK0000"
-                    className="w-full px-4 py-3 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-base font-bold outline-none focus:border-indigo-500 text-center font-mono uppercase tracking-widest"
-                  />
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => setUserRole('landing')}
-                      className="flex-1 py-3 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black transition-colors"
-                    >
-                      메인으로
-                    </button>
-                    <button
-                      type="submit"
-                      className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-xl text-xs font-black shadow-md transition-all active:scale-[0.98]"
-                    >
-                      코드 검증
-                    </button>
+                    <button type="button" onClick={() => { setIsPasswordModalOpen(false); setAdminPassword(''); }} className="flex-1 py-2.5 bg-[#161D30] hover:bg-[#1E294B] text-slate-400 rounded-xl text-xs font-black transition-colors">돌아가기</button>
+                    <button type="submit" className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black transition-colors shadow-md">인증하기</button>
                   </div>
                 </form>
               </div>
@@ -1153,42 +893,132 @@
           )}
 
           {}
-          {/* PARTICIPANT SELECT TEAM SCREEN */}
+          {userRole === 'admin_dashboard' && (
+            <main className="flex-grow max-w-5xl w-full mx-auto p-4 md:p-6 lg:p-8">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-black text-white">강사 세션 관리 대시보드</h2>
+                  <p className="text-xs text-slate-400 mt-1">개설된 시뮬레이션 과정을 생성, 입장 및 삭제할 수 있습니다.</p>
+                </div>
+                <button onClick={() => { setNewCourseName(''); setNewTeamCount(4); setIsCreateGameModalOpen(true); }} className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-xl text-xs font-black shadow-md transition-all active:scale-[0.98]">
+                  + 새 과정 개설
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.values(adminSessions).map(session => (
+                  <div key={session.gameCode} className="bg-[#121829] border border-[#1E294D] rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-[10px] bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded font-black">코드: {session.gameCode}</span>
+                        <span className="text-[9px] text-slate-500 font-bold">{new Date(session.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <h3 className="text-sm font-black text-white mb-1">{session.courseName}</h3>
+                      <p className="text-[11px] text-slate-400 font-bold">참여 규모: {session.teamCount}팀</p>
+                    </div>
+                    
+                    <div className="flex space-x-2 mt-5">
+                      <button onClick={() => { triggerConfirm("세션 삭제", `[${session.courseName}] 과정을 영구 삭제하시겠습니까?`, () => { gun.get(MASTER_LIST_KEY).get(session.gameCode).put("null"); showToast("세션이 삭제되었습니다."); }); }} className="flex-1 py-2.5 bg-[#161D30] hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-[#1E294D] hover:border-red-500/30 rounded-xl text-[11px] font-black transition-colors">삭제</button>
+                      <button onClick={() => { setGameState(prev => ({ ...prev, gameCode: session.gameCode })); setUserRole('admin'); showToast(`${session.courseName} 제어반에 입장했습니다.`); }} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-black transition-colors shadow-md">입장</button>
+                    </div>
+                  </div>
+                ))}
+                
+                {Object.keys(adminSessions).length === 0 && (
+                  <div className="col-span-full py-16 text-center border border-dashed border-[#1E294D] rounded-2xl bg-[#0D1222]/40">
+                    <p className="text-sm text-slate-400 font-bold">현재 개설된 시뮬레이션 세션이 없습니다.</p>
+                    <p className="text-[10px] text-slate-500 mt-1">우측 상단의 '+ 새 과정 개설' 버튼을 눌러 게임을 만드세요.</p>
+                  </div>
+                )}
+              </div>
+            </main>
+          )}
+
+          {isCreateGameModalOpen && (
+            <div className="fixed inset-0 bg-[#060810]/85 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+              <div className="bg-[#121829] border border-[#1E294D] rounded-2xl p-6 max-w-sm w-full shadow-2xl relative">
+                <h3 className="text-sm font-black text-white mb-4">새로운 시뮬레이션 개설</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 mb-1.5 uppercase">과정명 (세션 이름)</label>
+                    <input type="text" value={newCourseName} onChange={(e) => setNewCourseName(e.target.value)} placeholder="예: 2026 신입사원 입문과정" className="w-full px-3 py-2.5 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-xs font-bold outline-none focus:border-indigo-500" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 mb-1.5 uppercase">팀(그룹) 수 지정</label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
+                        <button key={n} type="button" onClick={() => setNewTeamCount(n)} className={`py-2 rounded-lg border text-xs font-black transition-all ${newTeamCount === n ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-[#161D30] border-[#1E294D] text-slate-400 hover:bg-[#1E294D]'}`}>{n}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex space-x-2 pt-2">
+                    <button onClick={() => setIsCreateGameModalOpen(false)} className="flex-1 py-2.5 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black">취소</button>
+                    <button onClick={handleCreateSessionSubmit} className="flex-1 py-2.5 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-xl text-xs font-black shadow-md">개설하기</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {}
+          {userRole === 'participant_join_flow' && (
+            <div className="flex-grow flex items-center justify-center px-4 py-12">
+              <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 shadow-xl text-center">
+                <h3 className="text-sm font-black text-white mb-2">시뮬레이션 세션 참가</h3>
+                <p className="text-[11px] text-slate-400 mb-6 leading-relaxed font-semibold">강사가 안내한 6자리 세션 참가 코드(예: MK2047)를 기입하십시오.</p>
+                <form onSubmit={handleParticipantJoin} className="space-y-4">
+                  <input type="text" required maxLength={6} value={joinGameCode} onChange={(e) => setJoinGameCode(e.target.value)} placeholder="MK0000" className="w-full px-4 py-3 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-base font-bold outline-none focus:border-indigo-500 text-center font-mono uppercase tracking-widest" />
+                  <div className="flex space-x-2">
+                    <button type="button" onClick={() => setUserRole('landing')} className="flex-1 py-3 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black transition-colors">메인으로</button>
+                    <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-xl text-xs font-black shadow-md transition-all active:scale-[0.98]">코드 검증 및 입장</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {userRole === 'participant_select_team' && (
             <div className="flex-grow flex items-center justify-center px-4 py-12">
               <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 shadow-xl text-center">
-                <h3 className="text-sm font-black text-white mb-1">참가팀(Group) 지정</h3>
-                <p className="text-[10px] text-slate-400 mb-6 leading-relaxed font-semibold">귀사에 지정된 학습 그룹(팀)을 목록에서 클릭하여 가상 장비 접속을 승인해 주십시오.</p>
+                <h3 className="text-sm font-black text-white mb-1">[{gameState.courseName}] 참가팀 지정</h3>
+                <p className="text-[10px] text-slate-400 mb-6 leading-relaxed font-semibold">귀사에 지정된 학습 그룹(팀)을 목록에서 클릭하여 가상 장비 접속을 승인해 주십시오.<br/><span className="text-amber-400 text-[9px]">* 1인 1팀만 선택 가능하며 접속 시 잠금 처리됩니다.</span></p>
                 
                 <div className="grid grid-cols-2 gap-2.5 max-h-[280px] overflow-y-auto mb-6 pr-1">
                   {gameState.teams.map(team => (
                     <button
                       key={team.id}
+                      disabled={team.isOccupied}
                       onClick={() => {
+                        const nextTeams = gameState.teams.map(t => t.id === team.id ? { ...t, isOccupied: true } : t);
+                        const nextState = { ...gameState, teams: nextTeams };
+                        gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state').put(JSON.stringify(nextState));
+                        
                         setSelectedTeamId(team.id);
                         setUserRole('gameplay');
                         showToast(`${team.name} 대시보드 인터페이스로 기동합니다.`);
                       }}
-                      className="p-3.5 rounded-xl border border-[#1E294D] bg-[#161D30] hover:bg-[#1E294D] hover:border-indigo-400 text-slate-200 text-xs font-black transition-all active:scale-95 text-center flex flex-col items-center justify-center"
+                      className={`p-3.5 rounded-xl border text-xs font-black transition-all text-center flex flex-col items-center justify-center ${
+                        team.isOccupied 
+                          ? 'bg-[#0B0F19] border-[#1E294D]/50 text-slate-600 cursor-not-allowed opacity-50'
+                          : 'border-[#1E294D] bg-[#161D30] hover:bg-[#1E294D] hover:border-indigo-400 text-slate-200 active:scale-95'
+                      }`}
                     >
                       <span>{team.name}</span>
-                      <span className="text-[9px] text-indigo-400 font-bold mt-1">보유 카드: {team.deck.length}장</span>
+                      {team.isOccupied ? (
+                        <span className="text-[9px] text-red-400 font-bold mt-1">입장 마감 (접속중)</span>
+                      ) : (
+                        <span className="text-[9px] text-indigo-400 font-bold mt-1">입장 가능</span>
+                      )}
                     </button>
                   ))}
                 </div>
 
-                <button
-                  onClick={() => setUserRole('participant_join_flow')}
-                  className="w-full py-2.5 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black"
-                >
-                  이전 단계로
-                </button>
+                <button onClick={() => setUserRole('participant_join_flow')} className="w-full py-2.5 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black">이전 단계로</button>
               </div>
             </div>
           )}
 
           {}
-          {/* PARTICIPANT GAMEPLAY INTERFACE (MOBILE-FIRST) */}
           {userRole === 'gameplay' && (
             <main className="flex-grow max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">
               
@@ -1197,17 +1027,11 @@
                   <span className="text-[8px] uppercase font-black tracking-widest text-slate-500 block">진행 정보</span>
                   <span className="text-xs font-black text-white font-mono">ROUND {gameState.currentRound} / 9</span>
                   <div className="h-4 w-[1px] bg-[#1E294B]"></div>
-                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${currentStageInfo.color}`}>
-                    {currentStageInfo.name}
-                  </span>
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${currentStageInfo.color}`}>{currentStageInfo.name}</span>
                 </div>
-
-                {/* 타이머 */}
                 <div className="flex items-center space-x-2 bg-[#161D30] border border-[#1E294D] px-2.5 py-1 rounded-xl">
                   <ClockIcon className={gameState.timer <= 30 && gameState.timerActive ? 'text-red-500 animate-pulse' : 'text-indigo-400'} />
-                  <span className={`font-mono text-xs font-black tracking-widest ${
-                    gameState.timer <= 30 && gameState.timerActive ? 'text-red-500 animate-pulse' : 'text-slate-100'
-                  }`}>
+                  <span className={`font-mono text-xs font-black tracking-widest ${gameState.timer <= 30 && gameState.timerActive ? 'text-red-500 animate-pulse' : 'text-slate-100'}`}>
                     {Math.floor(gameState.timer / 60)}:{String(gameState.timer % 60).padStart(2, '0')}
                   </span>
                 </div>
@@ -1222,125 +1046,67 @@
 
                 return (
                   <div className="space-y-4 max-w-md mx-auto">
-                    
-                    {/* MODAL POPUP: REVEALING ALL TEAMS' DEPLOYED CARDS (FOR MORAL ANALYSIS) */}
                     {showRoundResultPopup && (
                       <div className="fixed inset-0 bg-[#060810]/95 backdrop-blur-md flex items-center justify-center z-50 p-3">
                         <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-5 max-w-sm w-full shadow-2xl relative max-h-[85vh] overflow-y-auto">
                           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-indigo-500"></div>
                           
                           <div className="text-center mb-4">
-                            <span className="text-[8px] uppercase font-black tracking-widest text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-500/20">
-                              Round {round} 경영 통계 리포트
-                            </span>
-                            <h3 className="text-sm font-black text-white mt-2 font-extrabold">
-                              📢 {MARKET_STAGES[round]?.name} 정산 대조표
-                            </h3>
-                            <p className="text-[9px] text-slate-400 mt-0.5 font-bold">경쟁사들의 의사결정과 조합 가치가 실시간 공개되었습니다.</p>
+                            <span className="text-[8px] uppercase font-black tracking-widest text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-500/20">Round {round} 경영 리포트</span>
+                            <h3 className="text-sm font-black text-white mt-2 font-extrabold">📢 {MARKET_STAGES[round]?.name} 정산 대조표</h3>
                           </div>
 
-                          {/* 나의 그룹 결과 요약 */}
                           {team.history[round] && (
                             <div className="bg-[#161D30] border border-[#1E294D] rounded-xl p-3 mb-4 flex items-center justify-between">
                               <div className="flex items-center space-x-2">
-                                <div className="w-7 h-7 bg-indigo-950/80 border border-indigo-500/30 rounded-lg flex items-center justify-center text-indigo-400 font-black text-[9px]">
-                                  MY
-                                </div>
+                                <div className="w-7 h-7 bg-indigo-950/80 border border-indigo-500/30 rounded-lg flex items-center justify-center text-indigo-400 font-black text-[9px]">MY</div>
                                 <div>
                                   <span className="text-[8px] text-slate-400 font-black block leading-none">우리팀 합산액</span>
-                                  <span className="text-[10px] font-black text-slate-200">
-                                    {team.history[round].cards.map(c => c.value).join(' + ')} = <strong className="text-indigo-400 font-extrabold">{team.history[round].sum}</strong>
-                                  </span>
+                                  <span className="text-[10px] font-black text-slate-200">{team.history[round].cards.map(c => c.value).join(' + ')} = <strong className="text-indigo-400 font-extrabold">{team.history[round].sum}</strong></span>
                                 </div>
                               </div>
                               <div className="text-right">
                                 <span className="text-[8px] text-slate-400 font-black block leading-none">순수 손익</span>
-                                <span className={`text-xs font-black ${
-                                  team.history[round].score > 0 ? 'text-emerald-400' : team.history[round].score < 0 ? 'text-red-400' : 'text-slate-400'
-                                }`}>
-                                  {team.history[round].score > 0 ? `+${team.history[round].score}` : team.history[round].score}P
-                                </span>
+                                <span className={`text-xs font-black ${team.history[round].score > 0 ? 'text-emerald-400' : team.history[round].score < 0 ? 'text-red-400' : 'text-slate-400'}`}>{team.history[round].score > 0 ? `+${team.history[round].score}` : team.history[round].score}P</span>
                               </div>
                             </div>
                           )}
 
-                          {/* 타 그룹 상세 투척 현황표 */}
                           <div className="space-y-2 mb-4">
                             <h4 className="text-[10px] font-black text-slate-300">📊 시장 참여 그룹 의사결정 집계</h4>
                             <div className="border border-[#1E294D] rounded-xl overflow-hidden bg-[#0D1222] max-h-[180px] overflow-y-auto">
                               <table className="w-full text-left text-[9px]">
                                 <thead>
                                   <tr className="bg-[#141C33] border-b border-[#1E294D] font-black text-slate-400 uppercase tracking-wider text-[8px]">
-                                    <th className="p-2">참여 그룹</th>
-                                    <th className="p-2 text-center">제출 카드</th>
-                                    <th className="p-2 text-center">합</th>
-                                    <th className="p-2 text-right">손익</th>
+                                    <th className="p-2">참여 그룹</th><th className="p-2 text-center">제출 카드</th><th className="p-2 text-center">합</th><th className="p-2 text-right">손익</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#1E294D]/50 font-bold">
-                                  {[...gameState.teams]
-                                    .sort((a, b) => {
-                                      const aScore = a.history[round]?.score || 0;
-                                      const bScore = b.history[round]?.score || 0;
-                                      return bScore - aScore;
-                                    })
-                                    .map((t) => {
-                                      const h = t.history[round];
-                                      const isSelf = t.id === team.id;
-                                      return (
-                                        <tr key={t.id} className={`${isSelf ? 'bg-indigo-950/25' : 'hover:bg-[#121829]'}`}>
-                                          <td className="p-2 text-slate-200">
-                                            {t.name.split(' ')[0]} {isSelf && <span className="text-[7px] text-indigo-400 font-black bg-indigo-950 px-1 py-0.2 rounded border border-indigo-500/10">MY</span>}
-                                          </td>
-                                          <td className="p-2">
-                                            <div className="flex justify-center space-x-0.5">
-                                              {h && h.cards && h.cards.length > 0 ? (
-                                                h.cards.map((c, idx) => (
-                                                  <div 
-                                                    key={idx}
-                                                    className={`w-4 h-6 rounded text-[8px] font-black border flex items-center justify-center ${
-                                                      c.color === 'red' 
-                                                        ? 'bg-red-950/50 text-red-400 border-red-500/30' 
-                                                        : 'bg-slate-900 text-slate-200 border-slate-700'
-                                                    }`}
-                                                  >
-                                                    {c.value}
-                                                  </div>
-                                                ))
-                                              ) : (
-                                                <span className="text-slate-500">-</span>
-                                              )}
-                                            </div>
-                                          </td>
-                                          <td className="p-2 text-center text-slate-300">{h ? h.sum : '-'}</td>
-                                          <td className="p-2 text-right font-mono">
-                                            {h ? (
-                                              <span className={h.score > 0 ? 'text-emerald-400' : h.score < 0 ? 'text-red-400' : 'text-slate-400'}>
-                                                {h.score > 0 ? `+${h.score}` : h.score}P
-                                              </span>
-                                            ) : (
-                                              <span className="text-slate-500">-</span>
-                                            )}
-                                          </td>
-                                        </tr>
-                                      );
-                                    })}
+                                  {[...gameState.teams].sort((a, b) => (b.history[round]?.score || 0) - (a.history[round]?.score || 0)).map((t) => {
+                                    const h = t.history[round];
+                                    const isSelf = t.id === team.id;
+                                    return (
+                                      <tr key={t.id} className={`${isSelf ? 'bg-indigo-950/25' : 'hover:bg-[#121829]'}`}>
+                                        <td className="p-2 text-slate-200">{t.name.split(' ')[0]} {isSelf && <span className="text-[7px] text-indigo-400 font-black bg-indigo-950 px-1 py-0.2 rounded border border-indigo-500/10">MY</span>}</td>
+                                        <td className="p-2">
+                                          <div className="flex justify-center space-x-0.5">
+                                            {h && h.cards && h.cards.length > 0 ? h.cards.map((c, idx) => (<div key={idx} className={`w-4 h-6 rounded text-[8px] font-black border flex items-center justify-center ${c.color === 'red' ? 'bg-red-950/50 text-red-400 border-red-500/30' : 'bg-slate-900 text-slate-200 border-slate-700'}`}>{c.value}</div>)) : <span className="text-slate-500">-</span>}
+                                          </div>
+                                        </td>
+                                        <td className="p-2 text-center text-slate-300">{h ? h.sum : '-'}</td>
+                                        <td className="p-2 text-right font-mono">{h ? <span className={h.score > 0 ? 'text-emerald-400' : h.score < 0 ? 'text-red-400' : 'text-slate-400'}>{h.score > 0 ? `+${h.score}` : h.score}P</span> : <span className="text-slate-500">-</span>}</td>
+                                      </tr>
+                                    );
+                                  })}
                                 </tbody>
                               </table>
                             </div>
                           </div>
-
-                          <button
-                            onClick={() => setShowRoundResultPopup(false)}
-                            className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black transition-all active:scale-95"
-                          >
-                            데이터 분석 팝업 닫기
-                          </button>
+                          <button onClick={() => setShowRoundResultPopup(false)} className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black transition-all active:scale-95">팝업 닫기</button>
                         </div>
                       </div>
                     )}
 
-                    {/* Team Profile Header */}
                     <div className="bg-[#121829] border border-[#1E294D] rounded-2xl p-4 flex items-center justify-between shadow-lg">
                       <div>
                         <span className="text-[7px] uppercase font-black tracking-widest text-slate-500 block">My Enterprise Profile</span>
@@ -1352,150 +1118,83 @@
                       </div>
                     </div>
 
-                    {/* Decision space */}
                     <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-5 shadow-xl relative">
-                      
                       {hasSubmittedThisRound ? (
                         <div className="py-8 flex flex-col items-center justify-center text-center">
-                          <div className="w-10 h-10 bg-emerald-950/50 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center mb-3">
-                            <CheckCircleIcon className="w-5 h-5" />
-                          </div>
+                          <div className="w-10 h-10 bg-emerald-950/50 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center mb-3"><CheckCircleIcon className="w-5 h-5" /></div>
                           <h4 className="text-xs font-black text-white">이번 라운드 의사결정이 제출되었습니다.</h4>
-                          <p className="text-[10px] text-slate-400 max-w-xs mt-1.5 leading-relaxed font-bold">
-                            귀사가 제출한 카드 패킷은 암호화 보안 블록에 보호 조치되었습니다. 강사 통제반이 결과를 마감 및 산출할 때까지 대기해 주십시오.
-                          </p>
-
+                          <p className="text-[10px] text-slate-400 max-w-xs mt-1.5 leading-relaxed font-bold">강사 통제반이 결과를 마감 및 산출할 때까지 대기해 주십시오.</p>
                           <div className="flex space-x-2.5 mt-5">
                             {team.history[round].cards.map((c, index) => (
-                              <div 
-                                key={index}
-                                className={`w-11 h-16 rounded-xl border flex flex-col justify-between p-1.5 shadow-md bg-[#161D30] font-mono font-black ${
-                                  c.color === 'red' 
-                                    ? 'text-red-400 border-red-500/50' 
-                                    : 'text-slate-100 border-slate-700'
-                                }`}
-                              >
-                                <span className="text-[8px] text-left leading-none">{c.value}</span>
-                                <span className="text-lg font-black text-center leading-none">{c.value}</span>
-                                <span className="text-[8px] text-right leading-none">{c.value}</span>
+                              <div key={index} className={`w-11 h-16 rounded-xl border flex flex-col justify-between p-1.5 shadow-md bg-[#161D30] font-mono font-black ${c.color === 'red' ? 'text-red-400 border-red-500/50' : 'text-slate-100 border-slate-700'}`}>
+                                <span className="text-[8px] text-left leading-none">{c.value}</span><span className="text-lg font-black text-center leading-none">{c.value}</span><span className="text-[8px] text-right leading-none">{c.value}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       ) : gameState.status !== 'submitting' ? (
                         <div className="py-10 flex flex-col items-center justify-center text-center bg-[#0D1222]/60 rounded-2xl border border-dashed border-[#1E294D] p-4">
-                          <div className="w-9 h-9 bg-[#121829] border border-[#1E294D] text-slate-500 rounded-xl flex items-center justify-center mb-3">
-                            <LockIcon />
-                          </div>
+                          <div className="w-9 h-9 bg-[#121829] border border-[#1E294D] text-slate-500 rounded-xl flex items-center justify-center mb-3"><LockIcon /></div>
                           <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-wider">의사결정 개시 대기 중</h4>
-                          <p className="text-[9px] text-slate-500 max-w-xs mt-1.5 leading-relaxed font-semibold">
-                            강사가 시장 통제 컴퓨터에서 "제출 시작" 신호를 기동하는 즉시 타이머가 켜지고 카드 투척 권한이 승인됩니다.
-                          </p>
+                          <p className="text-[9px] text-slate-500 max-w-xs mt-1.5 leading-relaxed font-semibold">강사가 '제출 시작' 신호를 기동하면 카드 투척 권한이 승인됩니다.</p>
                         </div>
                       ) : (
                         <div className="space-y-5">
-                          
-                          {/* Selection preview slots */}
                           <div className="bg-[#0D1222] p-3 rounded-2xl border border-[#1E294D]/60 text-center">
                             <span className="text-[7px] uppercase font-black text-indigo-400 block mb-2 font-bold">Selected Preview</span>
-                            
                             <div className="flex justify-center items-center space-x-3.5 min-h-[90px]">
                               {selectedCards.length === 0 ? (
-                                <div className="text-[10px] text-slate-500 py-4 font-bold leading-relaxed">
-                                  💡 아래 보유 카드 목록에서 시뮬레이션 시장에 출품할 전술 카드 2장을 차례로 탭해 주십시오.
-                                </div>
+                                <div className="text-[10px] text-slate-500 py-4 font-bold leading-relaxed">💡 아래 보유 카드 목록에서 시장에 출품할 전술 카드 2장을 탭해 주십시오.</div>
                               ) : (
                                 selectedCards.map(c => (
-                                  <div
-                                    key={c.id}
-                                    onClick={() => handleSelectCard(c)}
-                                    className={`w-12 h-18 rounded-xl border p-1.5 bg-[#161D30] flex flex-col justify-between shadow-lg cursor-pointer transform hover:-translate-y-1 active:scale-95 transition-transform ${
-                                      c.color === 'red' 
-                                        ? 'text-red-400 border-red-500/40' 
-                                        : 'text-slate-100 border-slate-700'
-                                    }`}
-                                  >
-                                    <span className="text-[8px] font-mono text-left leading-none">{c.value}</span>
-                                    <span className="text-xl font-black text-center leading-none">{c.value}</span>
-                                    <span className="text-[8px] font-mono text-right leading-none">{c.value}</span>
+                                  <div key={c.id} onClick={() => handleSelectCard(c)} className={`w-12 h-18 rounded-xl border p-1.5 bg-[#161D30] flex flex-col justify-between shadow-lg cursor-pointer transform hover:-translate-y-1 active:scale-95 transition-transform ${c.color === 'red' ? 'text-red-400 border-red-500/40' : 'text-slate-100 border-slate-700'}`}>
+                                    <span className="text-[8px] font-mono text-left leading-none">{c.value}</span><span className="text-xl font-black text-center leading-none">{c.value}</span><span className="text-[8px] font-mono text-right leading-none">{c.value}</span>
                                   </div>
                                 ))
                               )}
                             </div>
-
                             {selectedCards.length === 2 && (
                               <div className="mt-3">
-                                <div className="text-[10px] font-black text-slate-300 mb-2">
-                                  제출 가치 합계: <span className="text-xs text-indigo-400 font-bold ml-1 font-mono">{selectedCards[0].value + selectedCards[1].value}</span>
-                                </div>
-                                <button
-                                  onClick={handlePromptSubmitCards}
-                                  className="w-full py-2 bg-indigo-600 text-white rounded-xl text-[11px] font-black transition-all active:scale-95"
-                                >
-                                  최종 제출 결정 실행
-                                </button>
+                                <div className="text-[10px] font-black text-slate-300 mb-2">제출 가치 합계: <span className="text-xs text-indigo-400 font-bold ml-1 font-mono">{selectedCards[0].value + selectedCards[1].value}</span></div>
+                                <button onClick={handlePromptSubmitCards} className="w-full py-2 bg-indigo-600 text-white rounded-xl text-[11px] font-black transition-all active:scale-95">최종 제출 결정 실행</button>
                               </div>
                             )}
                           </div>
-
-                          {/* Deck list */}
                           <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-[10px] font-black text-slate-400">보유 전술 카드 목록 ({team.deck.length}장 남아있음)</span>
-                            </div>
-
+                            <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-black text-slate-400">보유 전술 카드 목록 ({team.deck.length}장 남아있음)</span></div>
                             <div className="grid grid-cols-6 gap-1.5">
                               {team.deck.map(card => {
                                 const isSelected = selectedCards.some(sc => sc.id === card.id);
                                 return (
-                                  <button
-                                    key={card.id}
-                                    onClick={() => handleSelectCard(card)}
-                                    className={`aspect-[2/3] rounded-lg border p-1 flex flex-col justify-between transition-all bg-[#121829] active:scale-90 ${
-                                      isSelected 
-                                        ? 'border-indigo-400 scale-105 -translate-y-1 ring-2 ring-indigo-500/40 shadow-lg' 
-                                        : card.color === 'red'
-                                          ? 'text-red-400 border-red-950 hover:border-red-500/30'
-                                          : 'text-slate-100 border-slate-800 hover:border-slate-600'
-                                    }`}
-                                  >
-                                    <span className="text-[7px] font-mono text-left leading-none">{card.value}</span>
-                                    <span className="text-xs font-black text-center leading-none">{card.value}</span>
-                                    <span className="text-[7px] font-mono text-right leading-none">{card.value}</span>
+                                  <button key={card.id} onClick={() => handleSelectCard(card)} className={`aspect-[2/3] rounded-lg border p-1 flex flex-col justify-between transition-all bg-[#121829] active:scale-90 ${isSelected ? 'border-indigo-400 scale-105 -translate-y-1 ring-2 ring-indigo-500/40 shadow-lg' : card.color === 'red' ? 'text-red-400 border-red-950 hover:border-red-500/30' : 'text-slate-100 border-slate-800 hover:border-slate-600'}`}>
+                                    <span className="text-[7px] font-mono text-left leading-none">{card.value}</span><span className="text-xs font-black text-center leading-none">{card.value}</span><span className="text-[7px] font-mono text-right leading-none">{card.value}</span>
                                   </button>
                                 );
                               })}
                             </div>
                           </div>
-
                         </div>
                       )}
-
                     </div>
-
                   </div>
                 );
               })()}
-
             </main>
           )}
 
           {}
-          {/* ADMINISTRATOR CONTROL CENTRE (FOR WIDE PC DISPLAYS) */}
           {userRole === 'admin' && (
             <main className="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
               
-              {/* 9-ROUND CHRONOGRAPH MATRIX STRIP (WITH BLINKING GLOW SIGNAL) */}
               <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#1E294B]/50 pb-3.5 mb-4">
                   <div>
                     <span className="text-[8px] uppercase font-black tracking-widest text-indigo-400">Round Progress Board</span>
-                    <h3 className="text-xs font-black text-white mt-1">9단계 실시간 시장 흐름 전광판</h3>
+                    <h3 className="text-xs font-black text-white mt-1">[{gameState.courseName}] 실시간 시장 흐름 (코드: {gameState.gameCode})</h3>
                   </div>
                   {gameState.status === 'submitting' && (
                     <span className="text-[9px] font-black bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full animate-pulse flex items-center space-x-1.5 mt-2 sm:mt-0">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
-                      <span>의사결정 실시간 수집 활성화 중</span>
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span><span>의사결정 실시간 수집 활성화 중</span>
                     </span>
                   )}
                 </div>
@@ -1509,61 +1208,21 @@
                     
                     let borderPulseClass = "";
                     let neonBlinkIndicator = null;
-                    if (isActive && gameState.isStarted) {
-                      if (r <= 3) {
-                        borderPulseClass = gameState.status === 'submitting' ? 'pulse-cyan-glowing border-cyan-500' : 'border-cyan-500/80 shadow-[0_0_15px_rgba(6,182,212,0.15)]';
-                      } else if (r <= 6) {
-                        borderPulseClass = gameState.status === 'submitting' ? 'pulse-emerald-glowing border-emerald-500' : 'border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
-                      } else {
-                        borderPulseClass = gameState.status === 'submitting' ? 'pulse-indigo-glowing border-indigo-500' : 'border-indigo-500/80 shadow-[0_0_15px_rgba(139,92,246,0.15)]';
-                      }
-
-                      if (gameState.status === 'submitting') {
-                        neonBlinkIndicator = (
-                          <span 
-                            className="absolute top-2 right-2 w-2 h-2 rounded-full animate-custom-blink" 
-                            style={{ backgroundColor: stageInfo.hex, boxShadow: `0 0 8px ${stageInfo.hex}` }}
-                          />
-                        );
-                      }
+                    if (isActive) {
+                      if (r <= 3) borderPulseClass = gameState.status === 'submitting' ? 'pulse-cyan-glowing border-cyan-500' : 'border-cyan-500/80 shadow-[0_0_15px_rgba(6,182,212,0.15)]';
+                      else if (r <= 6) borderPulseClass = gameState.status === 'submitting' ? 'pulse-emerald-glowing border-emerald-500' : 'border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
+                      else borderPulseClass = gameState.status === 'submitting' ? 'pulse-indigo-glowing border-indigo-500' : 'border-indigo-500/80 shadow-[0_0_15px_rgba(139,92,246,0.15)]';
+                      if (gameState.status === 'submitting') neonBlinkIndicator = <span className="absolute top-2 right-2 w-2 h-2 rounded-full animate-custom-blink" style={{ backgroundColor: stageInfo.hex, boxShadow: `0 0 8px ${stageInfo.hex}` }} />;
                     }
 
                     return (
-                      <div
-                        key={r}
-                        className={`relative rounded-2xl p-3 border-2 transition-all flex flex-col justify-between min-h-[90px] ${
-                          isCompleted 
-                            ? 'bg-[#141C33]/30 border-[#1E294D]/30 opacity-60' 
-                            : isActive && gameState.isStarted
-                              ? `bg-[#141C33] text-white ${borderPulseClass}` 
-                              : 'bg-[#0D1222]/40 border-[#1E294D]/40 text-slate-500'
-                        }`}
-                      >
+                      <div key={r} className={`relative rounded-2xl p-3 border-2 transition-all flex flex-col justify-between min-h-[90px] ${isCompleted ? 'bg-[#141C33]/30 border-[#1E294D]/30 opacity-60' : isActive ? `bg-[#141C33] text-white ${borderPulseClass}` : 'bg-[#0D1222]/40 border-[#1E294D]/40 text-slate-500'}`}>
                         {neonBlinkIndicator}
-                        <div>
-                          <span className={`text-[8px] font-black uppercase tracking-wider block ${
-                            isActive && gameState.isStarted ? 'text-indigo-300' : 'text-slate-500'
-                          }`}>
-                            Round {r}
-                          </span>
-                          <span className="text-[10px] font-black leading-tight block mt-1">
-                            {r <= 3 ? "초기 시장" : r <= 6 ? "완전경쟁" : "독점 시장"}
-                          </span>
-                        </div>
-
+                        <div><span className={`text-[8px] font-black uppercase tracking-wider block ${isActive ? 'text-indigo-300' : 'text-slate-500'}`}>Round {r}</span><span className="text-[10px] font-black leading-tight block mt-1">{r <= 3 ? "초기 시장" : r <= 6 ? "완전경쟁" : "독점 시장"}</span></div>
                         <div className="mt-3 flex items-center justify-between">
-                          <span className="text-[8px] opacity-70 font-bold">
-                            {isCompleted ? "정산 완료" : (isActive && gameState.isStarted) ? "의사결정" : "잠금 대기"}
-                          </span>
+                          <span className="text-[8px] opacity-70 font-bold">{isCompleted ? "정산 완료" : isActive ? "의사결정" : "잠금 대기"}</span>
                           {isCompleted && <span className="text-[9px] text-emerald-400 font-extrabold">✓</span>}
-                          {isActive && gameState.isStarted && (
-                            <span 
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                gameState.status === 'submitting' ? 'animate-ping' : ''
-                              }`}
-                              style={{ backgroundColor: stageInfo.hex }}
-                            />
-                          )}
+                          {isActive && <span className={`w-1.5 h-1.5 rounded-full ${gameState.status === 'submitting' ? 'animate-ping' : ''}`} style={{ backgroundColor: stageInfo.hex }} />}
                         </div>
                       </div>
                     );
@@ -1571,462 +1230,158 @@
                 </div>
               </div>
 
-              {}
-              {/* UNINITIALISED GAME OR NOT COMMENCED YET - LAUNCHPAD SETUP */}
-              {!gameState.isStarted ? (
-                <div className="max-w-2xl mx-auto bg-[#121829] rounded-3xl border border-[#1E294D] p-8 shadow-2xl relative overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-cyan-500 to-violet-500"></div>
+              <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl">
+                <div className="border-b border-[#1E294B]/50 pb-3.5 mb-4"><span className="text-[8px] uppercase font-black tracking-widest text-indigo-400">Session Operations Desk</span><h3 className="text-xs font-black text-white mt-1">강사 원격 실시간 제어 스위치</h3></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   
-                  {!gameState.isSetupFormVisible ? (
-                    // 1단계: 강사가 직접 방을 개설하여 세션코드를 먼저 받아오는 화면
-                    <div className="text-center py-6">
-                      <div className="w-14 h-14 bg-indigo-950/50 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <UsersIcon />
-                      </div>
-                      <h2 className="text-xl font-black tracking-tight text-white">시뮬레이션 인스턴스 개설</h2>
-                      <p className="text-xs text-slate-400 mt-1.5 leading-relaxed font-bold">
-                        수강생 스마트폰이 실시간 상호 동기화 접속할 수 있도록 비즈니스 대기실 세션 코드를 먼저 생성합니다.
-                      </p>
-                      <button
-                        onClick={handlePreCreateSession}
-                        className="mt-6 px-6 py-3 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-2xl text-xs font-black shadow-md transition-all active:scale-[0.98]"
-                      >
-                        새로운 시뮬레이션 세션 개설하기
-                      </button>
+                  <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
+                    <div><span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">의사결정 제어</span><h4 className="text-xs font-black text-slate-300">의사결정 권한 오픈/조종</h4></div>
+                    <div className="mt-4 flex space-x-2">
+                      <button onClick={handleStartSubmission} disabled={gameState.status === 'submitting' || gameState.status === 'revealed' || gameState.status === 'ended'} className="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-30 disabled:from-slate-800 disabled:to-slate-800 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center justify-center"><PlayIcon /><span>제출 시작</span></button>
+                      <button onClick={handleCloseSubmission} disabled={gameState.status !== 'submitting'} className="flex-1 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-slate-800 disabled:opacity-30 text-slate-300 rounded-xl text-xs font-black transition-all flex items-center justify-center"><SquareIcon /><span>마감하기</span></button>
                     </div>
-                  ) : (
-                    // 2단계: 선 개설된 6자리 참가 코드와 함께 참가팀 규모를 조율하는 화면
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <span className="text-[9px] uppercase font-black text-indigo-400 tracking-widest bg-indigo-950 px-2.5 py-1 rounded-md border border-indigo-500/20">
-                          Session Reservation Created
-                        </span>
-                        <h3 className="text-sm font-black text-slate-400 mt-2.5">글로벌 실시간 참가용 세션 코드</h3>
-                        <div className="text-4xl font-extrabold text-white font-mono tracking-widest mt-2 select-text">
-                          {gameState.gameCode}
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-1 font-semibold leading-relaxed">
-                          수강생들에게 이 코드를 먼저 공지하여 스마트폰 대시보드로 입장하도록 유도하십시오.
-                        </p>
-                      </div>
+                  </div>
 
-                      <div className="border-t border-[#1E294B]/50 pt-5">
-                        <label className="block text-[10px] font-black text-slate-400 mb-3 text-center uppercase tracking-widest">
-                          참여할 학습 그룹(팀) 규모 설정
-                        </label>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-w-md mx-auto mb-6">
-                          {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
-                            <button
-                              key={n}
-                              type="button"
-                              onClick={() => setSetupTeamCount(n)}
-                              className={`py-2 rounded-xl border text-xs font-black transition-all ${
-                                setupTeamCount === n 
-                                  ? 'bg-indigo-600 border-indigo-400 text-white shadow-md' 
-                                  : 'bg-[#161D30] border-[#1E294D] text-slate-400 hover:bg-[#1E294D]'
-                              }`}
-                            >
-                              {n}팀
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="text-center">
-                          <button
-                            onClick={handleFinalCommenceSimulation}
-                            className="w-full max-w-xs py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-2xl text-xs font-black transition-all active:scale-[0.98] shadow-lg shadow-emerald-950/20"
-                          >
-                            시뮬레이션 공식 가동 시작
-                          </button>
-                        </div>
-                      </div>
+                  <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
+                    <div><span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">시장 정산</span><h4 className="text-xs font-black text-slate-300">손익 자동 연산 및 리포트 공개</h4></div>
+                    <div className="mt-4">
+                      <button onClick={handleRevealResults} disabled={gameState.status !== 'closed'} className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:opacity-30 disabled:from-slate-800 disabled:to-slate-800 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center justify-center"><AwardIcon /><span>결과 연산 및 실시간 공개</span></button>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
+                    <div><span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">페이즈 조율</span><h4 className="text-xs font-black text-slate-300">다음 라운드 진입 및 안전 롤백</h4></div>
+                    <div className="mt-4 flex space-x-2">
+                      <button onClick={handlePrevRound} disabled={gameState.currentRound <= 1} className="px-3 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-slate-800 disabled:opacity-30 text-slate-300 rounded-xl text-xs font-black"><ChevronLeftIcon /></button>
+                      <button onClick={handleNextRound} disabled={gameState.status !== 'revealed'} className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 disabled:opacity-30 disabled:from-slate-800 disabled:to-slate-800 text-white rounded-xl text-xs font-black flex items-center justify-center space-x-1"><span>{gameState.currentRound === 9 ? '최종 발표' : '다음 라운드'}</span><ChevronRightIcon /></button>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
+                    <div><span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">시간 통제 및 리셋</span><h4 className="text-xs font-black text-slate-300">타이머 보정 및 데이터 초기화</h4></div>
+                    <div className="mt-4 flex items-center space-x-1.5">
+                      <button onClick={toggleTimerPause} disabled={gameState.status !== 'submitting'} className="px-2 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-[#1E294B] disabled:opacity-30 rounded-xl text-[10px] font-black text-slate-300">{gameState.timerActive ? "일시정지" : "재개"}</button>
+                      <button onClick={() => adjustTimer(30)} disabled={gameState.status !== 'submitting'} className="flex-1 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-[#1E294B] disabled:opacity-30 text-slate-300 rounded-xl text-[10px] font-black">+30s</button>
+                      <button onClick={() => adjustTimer(-30)} disabled={gameState.status !== 'submitting'} className="flex-1 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-[#1E294B] disabled:opacity-30 text-slate-300 rounded-xl text-[10px] font-black">-30s</button>
+                      <button onClick={handleResetGame} className="px-2.5 py-2.5 bg-red-950/50 hover:bg-red-900 border border-red-800 text-red-400 rounded-xl text-[10px] font-black" title="점수 및 라운드 포맷">포맷</button>
+                    </div>
+                  </div>
 
                 </div>
-              ) : (
-                /* IN-GAME OPERATING STEERAGE PANEL */
-                <div className="space-y-6">
-                  
-                  {/* Operations switches */}
-                  <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl">
-                    <div className="border-b border-[#1E294B]/50 pb-3.5 mb-4">
-                      <span className="text-[8px] uppercase font-black tracking-widest text-indigo-400">Session Operations Desk</span>
-                      <h3 className="text-xs font-black text-white mt-1">강사 원격 실시간 제어 스위치</h3>
-                    </div>
+              </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl lg:col-span-2">
+                  <div className="flex items-center justify-between border-b border-[#1E294B]/50 pb-3.5 mb-4">
+                    <div><span className="text-[8px] uppercase font-black tracking-widest text-indigo-400">Real-time Stream</span><h3 className="text-xs font-black text-white">그룹별 의사결정 수신 및 점유 현황</h3></div>
+                    <span className="text-[10px] font-black text-indigo-300 bg-indigo-950/60 border border-indigo-500/20 px-2.5 py-1 rounded-lg">활성: {gameState.teams.length}개 팀</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {gameState.teams.map(team => {
+                      const round = gameState.currentRound;
+                      const hist = team.history[round];
+                      const hasSubmitted = hist && hist.cards && hist.cards.length > 0;
                       
-                      {/* Submission controllers */}
-                      <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
-                        <div>
-                          <span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">의사결정 제어</span>
-                          <h4 className="text-xs font-black text-slate-300">의사결정 권한 오픈/조종</h4>
+                      return (
+                        <div key={team.id} className={`p-4 rounded-2xl border transition-all ${hasSubmitted ? 'bg-[#151D33]/40 border-[#1F2E57]' : gameState.status === 'submitting' ? 'bg-amber-950/15 border-amber-500/40 animate-pulse' : 'bg-[#0D1222]/60 border-[#1E294D]/60'}`}>
+                          <div className="flex items-center justify-between mb-2.5">
+                            <input type="text" value={team.name} onChange={(e) => handleUpdateTeamName(team.id, e.target.value)} className={`text-xs font-black bg-transparent border-b outline-none w-28 ${team.isOccupied ? 'text-indigo-300 border-transparent hover:border-indigo-400 focus:border-indigo-400' : 'text-slate-400 border-transparent hover:border-slate-600 focus:border-indigo-400'}`} title="팀명 수정" />
+                            {hasSubmitted ? (
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${hist.isAuto ? 'bg-amber-950/80 text-amber-400 border border-amber-500/20' : 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/20'}`}>{hist.isAuto ? '자동 제출 완료' : '전송 완료'}</span>
+                            ) : (
+                              <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-full ${team.isOccupied ? 'text-indigo-400 bg-indigo-950/60 border border-indigo-500/30' : 'text-slate-500 bg-[#161D30]'}`}>
+                                {team.isOccupied ? '현재 참가자 접속중' : gameState.status === 'submitting' ? '전술 구성 중' : '대기 상태'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between bg-[#0B0F19] border border-[#1E294D]/60 rounded-xl p-2">
+                            {hasSubmitted ? (
+                              <>
+                                <div className="flex -space-x-1">
+                                  {hist.cards.map((c, index) => (<div key={index} className={`w-6 h-8 rounded text-[10px] font-black border flex items-center justify-center ${gameState.status === 'revealed' || gameState.status === 'closed' ? c.color === 'red' ? 'bg-red-950/80 text-red-400 border-red-500/30' : 'bg-slate-900 text-slate-100 border-slate-700' : 'bg-[#1F294D] text-slate-400 border-indigo-500/10'}`}>{gameState.status === 'revealed' || gameState.status === 'closed' ? c.value : '?'}</div>))}
+                                </div>
+                                <span className="text-[9px] font-black text-slate-400">
+                                  {gameState.status === 'revealed' || gameState.status === 'closed' ? (<span>결합 가치: <strong className="text-indigo-400">{hist.cards[0].value + hist.cards[1].value}</strong></span>) : (<span className="text-indigo-400 flex items-center space-x-1"><span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-ping"></span><span>기밀 데이터 수신됨</span></span>)}
+                                </span>
+                              </>
+                            ) : (<span className="text-[9px] text-slate-500 py-1 font-semibold">의사결정 보강 대기</span>)}
+                          </div>
                         </div>
-                        <div className="mt-4 flex space-x-2">
-                          <button
-                            onClick={handleStartSubmission}
-                            disabled={gameState.status === 'submitting' || gameState.status === 'revealed' || gameState.status === 'ended'}
-                            className="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-30 disabled:from-slate-800 disabled:to-slate-800 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center justify-center"
-                          >
-                            <PlayIcon />
-                            <span>제출 시작</span>
-                          </button>
-                          <button
-                            onClick={handleCloseSubmission}
-                            disabled={gameState.status !== 'submitting'}
-                            className="flex-1 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-slate-800 disabled:opacity-30 text-slate-300 rounded-xl text-xs font-black transition-all flex items-center justify-center"
-                          >
-                            <SquareIcon />
-                            <span>마감하기</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Score computing processors */}
-                      <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
-                        <div>
-                          <span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">시장 정산</span>
-                          <h4 className="text-xs font-black text-slate-300">손익 이익 자동 연산 및 리포트 공개</h4>
-                        </div>
-                        <div className="mt-4">
-                          <button
-                            onClick={handleRevealResults}
-                            disabled={gameState.status !== 'closed'}
-                            className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:opacity-30 disabled:from-slate-800 disabled:to-slate-800 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center justify-center"
-                          >
-                            <AwardIcon />
-                            <span>결과 연산 및 실시간 공개</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Phase adjusters */}
-                      <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
-                        <div>
-                          <span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">페이즈 조율</span>
-                          <h4 className="text-xs font-black text-slate-300">다음 라운드 전진 및 안전 롤백</h4>
-                        </div>
-                        <div className="mt-4 flex space-x-2">
-                          <button
-                            onClick={handlePrevRound}
-                            disabled={gameState.currentRound <= 1}
-                            className="px-3 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-slate-800 disabled:opacity-30 text-slate-300 rounded-xl text-xs font-black"
-                            title="이전 라운드로 롤백"
-                          >
-                            <ChevronLeftIcon />
-                          </button>
-                          <button
-                            onClick={handleNextRound}
-                            disabled={gameState.status !== 'revealed'}
-                            className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 disabled:opacity-30 disabled:from-slate-800 disabled:to-slate-800 text-white rounded-xl text-xs font-black flex items-center justify-center space-x-1"
-                          >
-                            <span>{gameState.currentRound === 9 ? '종합 성적 발표' : '다음 라운드 진입'}</span>
-                            <ChevronRightIcon />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Chronograph monitors and diagnostics */}
-                      <div className="bg-[#161D30] rounded-2xl p-4 border border-[#1E294D]/60 flex flex-col justify-between">
-                        <div>
-                          <span className="text-[8px] text-slate-400 uppercase tracking-widest font-black block mb-1">시간 통제 및 리셋</span>
-                          <h4 className="text-xs font-black text-slate-300">타이머 보정 및 데이터 초기화</h4>
-                        </div>
-                        <div className="mt-4 flex items-center space-x-1.5">
-                          <button
-                            onClick={toggleTimerPause}
-                            disabled={gameState.status !== 'submitting'}
-                            className="px-2 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-[#1E294B] disabled:opacity-30 rounded-xl text-[10px] font-black text-slate-300"
-                          >
-                            {gameState.timerActive ? "일시정지" : "재개"}
-                          </button>
-                          <button
-                            onClick={() => adjustTimer(30)}
-                            disabled={gameState.status !== 'submitting'}
-                            className="flex-1 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-[#1E294B] disabled:opacity-30 text-slate-300 rounded-xl text-[10px] font-black"
-                          >
-                            +30s
-                          </button>
-                          <button
-                            onClick={() => adjustTimer(-30)}
-                            disabled={gameState.status !== 'submitting'}
-                            className="flex-1 py-2.5 bg-[#121829] border border-[#1E294D] hover:bg-[#1E294B] disabled:opacity-30 text-slate-300 rounded-xl text-[10px] font-black"
-                          >
-                            -30s
-                          </button>
-                          <button
-                            onClick={handleResetGame}
-                            className="px-2.5 py-2.5 bg-red-950/50 hover:bg-red-900 border border-red-800 text-red-400 rounded-xl text-[10px] font-black"
-                            title="완전 초기화"
-                          >
-                            포맷
-                          </button>
-                        </div>
-                      </div>
-
-                    </div>
+                      );
+                    })}
                   </div>
+                </div>
 
-                  {}
-                  {/* PC Dash panels */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    {/* LEFT PANEL: REALTIME MONITORING STREAM MATRIX */}
-                    <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl lg:col-span-2">
-                      <div className="flex items-center justify-between border-b border-[#1E294B]/50 pb-3.5 mb-4">
-                        <div>
-                          <span className="text-[8px] uppercase font-black tracking-widest text-indigo-400">Real-time Stream</span>
-                          <h3 className="text-xs font-black text-white">그룹별 의사결정 수신 판독 현황</h3>
-                        </div>
-                        <span className="text-[10px] font-black text-indigo-300 bg-indigo-950/60 border border-indigo-500/20 px-2.5 py-1 rounded-lg">
-                          🔑 세션 코드: {gameState.gameCode} (활성: {gameState.teams.length}개 팀)
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                        {gameState.teams.map(team => {
-                          const round = gameState.currentRound;
-                          const hist = team.history[round];
-                          const hasSubmitted = hist && hist.cards && hist.cards.length > 0;
-                          
-                          return (
-                            <div 
-                              key={team.id}
-                              className={`p-4 rounded-2xl border transition-all ${
-                                hasSubmitted 
-                                  ? 'bg-[#151D33]/40 border-[#1F2E57]' 
-                                  : gameState.status === 'submitting'
-                                    ? 'bg-amber-950/15 border-amber-500/40 animate-pulse'
-                                    : 'bg-[#0D1222]/60 border-[#1E294D]/60'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-2.5">
-                                <input
-                                  type="text"
-                                  value={team.name}
-                                  onChange={(e) => handleUpdateTeamName(team.id, e.target.value)}
-                                  className="text-xs font-black text-slate-200 bg-transparent border-b border-transparent hover:border-slate-600 focus:border-indigo-400 outline-none w-28"
-                                  title="팀명 수정"
-                                />
-                                {hasSubmitted ? (
-                                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                                    hist.isAuto 
-                                      ? 'bg-amber-950/80 text-amber-400 border border-amber-500/20' 
-                                      : 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/20'
-                                  }`}>
-                                    {hist.isAuto ? '자동 제출 완료' : '전술 전송 완료'}
-                                  </span>
-                                ) : (
-                                  <span className="text-[9px] font-black text-slate-500 bg-[#161D30] px-2.5 py-0.5 rounded-full">
-                                    {gameState.status === 'submitting' ? '전술 구성 중' : '대기 상태'}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="flex items-center justify-between bg-[#0B0F19] border border-[#1E294D]/60 rounded-xl p-2">
-                                {hasSubmitted ? (
-                                  <>
-                                    <div className="flex -space-x-1">
-                                      {hist.cards.map((c, index) => (
-                                        <div 
-                                          key={index}
-                                          className={`w-6 h-8 rounded text-[10px] font-black border flex items-center justify-center ${
-                                            gameState.status === 'revealed' || gameState.status === 'closed'
-                                              ? c.color === 'red' ? 'bg-red-950/80 text-red-400 border-red-500/30' : 'bg-slate-900 text-slate-100 border-slate-700'
-                                              : 'bg-[#1F294D] text-slate-400 border-indigo-500/10'
-                                          }`}
-                                        >
-                                          {gameState.status === 'revealed' || gameState.status === 'closed' ? c.value : '?'}
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <span className="text-[9px] font-black text-slate-400">
-                                      {gameState.status === 'revealed' || gameState.status === 'closed' ? (
-                                        <span>결합 가치: <strong className="text-indigo-400">{hist.cards[0].value + hist.cards[1].value}</strong></span>
-                                      ) : (
-                                        <span className="text-indigo-400 flex items-center space-x-1">
-                                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-ping"></span>
-                                          <span>기밀 데이터 수신됨</span>
-                                        </span>
-                                      )}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-[9px] text-slate-500 py-1 font-semibold">의사결정 보강 대기</span>
-                                )}
-                              </div>
+                <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl">
+                  <div className="flex items-center justify-between border-b border-[#1E294B]/50 pb-3.5 mb-4">
+                    <div><span className="text-[8px] uppercase font-black tracking-widest text-indigo-400">Leaderboard</span><h3 className="text-xs font-black text-white">종합 순위표</h3></div>
+                    <button onClick={handleExportCSV} className="p-1.5 text-slate-400 hover:text-white rounded-lg border border-[#1E294D] hover:bg-[#1E294B] transition-colors" title="CSV 다운로드"><DownloadIcon /></button>
+                  </div>
+                  <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
+                    {[...gameState.teams].sort((a, b) => b.score - a.score).map((team, index) => {
+                      const isTopRank = index === 0;
+                      return (
+                        <div key={team.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isTopRank ? 'bg-indigo-950/20 border-indigo-500/30 shadow-indigo-950/20' : 'bg-[#0D1222]/50 border-[#1E294D]'}`}>
+                          <div className="flex items-center space-x-3">
+                            <span className={`w-5.5 h-5.5 rounded-lg flex items-center justify-center font-mono text-[10px] font-black ${isTopRank ? 'bg-indigo-500/30 text-indigo-300' : 'bg-[#1E294B] text-slate-400'}`}>{index + 1}</span>
+                            <div>
+                              <span className="text-xs font-black text-slate-200">{team.name}</span>
+                              <span className="text-[8px] text-slate-500 block font-semibold">잔여 카드: {team.deck.length}장</span>
                             </div>
-                          );
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono text-xs font-black text-white">{team.score.toLocaleString()}P</span>
+                            <button onClick={() => { setEditingScoreTeamId(team.id); setEditScoreValue(team.history[gameState.currentRound]?.score || '0'); }} className="p-1 text-slate-500 hover:text-slate-300 transition-colors"><EditIcon /></button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl overflow-x-auto">
+                <div className="border-b border-[#1E294B]/50 pb-3.5 mb-4"><h3 className="text-xs font-black text-white">종합 시장 경영 성과 누계 리포트</h3></div>
+                <table className="w-full text-left border-collapse min-w-[700px]">
+                  <thead><tr className="border-b border-[#1E294D] text-[9px] uppercase font-black text-slate-500 tracking-wider"><th className="py-2.5">그룹 프로필</th>{Array.from({ length: 9 }).map((_, i) => (<th key={i} className="py-2.5 text-center">R{i + 1}</th>))}<th className="py-2.5 text-right">종합 누계</th></tr></thead>
+                  <tbody className="divide-y divide-[#1E294D]/30 text-xs">
+                    {gameState.teams.map(team => (
+                      <tr key={team.id} className="hover:bg-[#151D33]/20">
+                        <td className="py-3 font-black text-slate-200">{team.name}</td>
+                        {Array.from({ length: 9 }).map((_, index) => {
+                          const h = team.history[index + 1];
+                          return (<td key={index} className="py-3 text-center">{h ? (<div className="inline-flex flex-col items-center font-semibold"><span className="font-mono text-[9px] font-bold text-slate-500">[{h.cards.map(c => c.value).join('+')}]</span><span className={`text-[9px] font-black ${h.score > 0 ? 'text-emerald-400' : h.score < 0 ? 'text-red-400' : 'text-slate-400'}`}>{h.score > 0 ? `+${h.score}` : h.score}P</span></div>) : (<span className="text-slate-600 font-bold">-</span>)}</td>);
                         })}
-                      </div>
+                        <td className="py-3 font-mono font-black text-right text-indigo-400">{team.score.toLocaleString()}P</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {editingScoreTeamId && (
+                <div className="fixed inset-0 bg-[#060810]/80 backdrop-blur-xs flex items-center justify-center z-50">
+                  <div className="bg-[#121829] border border-[#1E294D] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                    <h4 className="text-xs font-black text-white mb-1.5">임의 점수 가감 시스템 조율</h4>
+                    <input type="number" value={editScoreValue} onChange={(e) => setEditScoreValue(e.target.value)} placeholder="변경 반영할 라운드 점수 입력" className="w-full px-3.5 py-2.5 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-xs font-black outline-none focus:border-indigo-500 mb-4 text-center font-mono mt-4" />
+                    <div className="flex space-x-2">
+                      <button onClick={() => setEditingScoreTeamId(null)} className="flex-1 py-2 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black">취소</button>
+                      <button onClick={handleManualScoreEdit} className="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black">보정값 적용</button>
                     </div>
-
-                    {/* RIGHT PANEL: LEADERBOARD CHRONICLE */}
-                    <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl">
-                      <div className="flex items-center justify-between border-b border-[#1E294B]/50 pb-3.5 mb-4">
-                        <div>
-                          <span className="text-[8px] uppercase font-black tracking-widest text-indigo-400">Leaderboard</span>
-                          <h3 className="text-xs font-black text-white">실시간 종합 순위표</h3>
-                        </div>
-                        <button
-                          onClick={handleExportCSV}
-                          className="p-1.5 text-slate-400 hover:text-white rounded-lg border border-[#1E294D] hover:bg-[#1E294B] transition-colors"
-                          title="CSV 다운로드"
-                        >
-                          <DownloadIcon />
-                        </button>
-                      </div>
-
-                      <div className="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
-                        {[...gameState.teams]
-                          .sort((a, b) => b.score - a.score)
-                          .map((team, index) => {
-                            const isTopRank = index === 0;
-                            return (
-                              <div 
-                                key={team.id}
-                                className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                  isTopRank ? 'bg-indigo-950/20 border-indigo-500/30 shadow-indigo-950/20' : 'bg-[#0D1222]/50 border-[#1E294D]'
-                                }`}
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <span className={`w-5.5 h-5.5 rounded-lg flex items-center justify-center font-mono text-[10px] font-black ${
-                                    isTopRank ? 'bg-indigo-500/30 text-indigo-300' : 'bg-[#1E294B] text-slate-400'
-                                  }`}>
-                                    {index + 1}
-                                  </span>
-                                  <div>
-                                    <span className="text-xs font-black text-slate-200">{team.name}</span>
-                                    <span className="text-[8px] text-slate-500 block font-semibold">잔여 카드: {team.deck.length}장</span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <span className="font-mono text-xs font-black text-white">
-                                    {team.score.toLocaleString()}P
-                                  </span>
-                                  
-                                  <button
-                                    onClick={() => {
-                                      setEditingScoreTeamId(team.id);
-                                      setEditScoreValue(team.history[gameState.currentRound]?.score || '0');
-                                    }}
-                                    className="p-1 text-slate-500 hover:text-slate-300 transition-colors"
-                                    title="점수 조정"
-                                  >
-                                    <EditIcon />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-
                   </div>
-
-                  {/* BOTTOM DESKTOP MATRIX SUMMARY RECORD TABLE */}
-                  <div className="bg-[#121829] border border-[#1E294D] rounded-3xl p-6 shadow-xl overflow-x-auto">
-                    <div className="border-b border-[#1E294B]/50 pb-3.5 mb-4">
-                      <h3 className="text-xs font-black text-white">종합 시장 경영 성과 누계 리포트</h3>
-                      <p className="text-[10px] text-slate-400 mt-1 font-semibold">참여 그룹 전체의 라운드별 선택 전술 카드 정보 및 실시간 손익 상태를 대조합니다.</p>
-                    </div>
-
-                    <table className="w-full text-left border-collapse min-w-[700px]">
-                      <thead>
-                        <tr className="border-b border-[#1E294D] text-[9px] uppercase font-black text-slate-500 tracking-wider">
-                          <th className="py-2.5">그룹 프로필</th>
-                          {Array.from({ length: 9 }).map((_, i) => (
-                            <th key={i} className="py-2.5 text-center">R{i + 1}</th>
-                          ))}
-                          <th className="py-2.5 text-right">종합 누계</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#1E294D]/30 text-xs">
-                        {gameState.teams.map(team => (
-                          <tr key={team.id} className="hover:bg-[#151D33]/20">
-                            <td className="py-3 font-black text-slate-200">{team.name}</td>
-                            {Array.from({ length: 9 }).map((_, index) => {
-                              const r = index + 1;
-                              const h = team.history[r];
-                              return (
-                                <td key={index} className="py-3 text-center">
-                                  {h ? (
-                                    <div className="inline-flex flex-col items-center font-semibold">
-                                      <span className="font-mono text-[9px] font-bold text-slate-500">
-                                        [{h.cards.map(c => c.value).join('+')}]
-                                      </span>
-                                      <span className={`text-[9px] font-black ${
-                                        h.score > 0 ? 'text-emerald-400' : h.score < 0 ? 'text-red-400' : 'text-slate-400'
-                                      }`}>
-                                        {h.score > 0 ? `+${h.score}` : h.score}P
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <span className="text-slate-600 font-bold">-</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                            <td className="py-3 font-mono font-black text-right text-indigo-400">
-                              {team.score.toLocaleString()}P
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* SCORE RE-EDIT MODAL DIALOG */}
-                  {editingScoreTeamId && (
-                    <div className="fixed inset-0 bg-[#060810]/80 backdrop-blur-xs flex items-center justify-center z-50">
-                      <div className="bg-[#121829] border border-[#1E294D] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-                        <h4 className="text-xs font-black text-white mb-1.5">임의 점수 가감 시스템 조율</h4>
-                        <p className="text-[10px] text-slate-400 mb-4 leading-relaxed font-semibold">
-                          강사가 직접 해당 그룹의 성적 패널티 및 임의 가산 이익을 임의로 수치 고정 보정합니다.
-                        </p>
-                        <input
-                          type="number"
-                          value={editScoreValue}
-                          onChange={(e) => setEditScoreValue(e.target.value)}
-                          placeholder="변경 반영할 라운드 점수 입력"
-                          className="w-full px-3.5 py-2.5 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-xs font-black outline-none focus:border-indigo-500 mb-4 text-center font-mono"
-                        />
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => setEditingScoreTeamId(null)}
-                            className="flex-1 py-2 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black"
-                          >
-                            취소
-                          </button>
-                          <button
-                            onClick={handleManualScoreEdit}
-                            className="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black"
-                          >
-                            보정값 적용
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                 </div>
               )}
-
             </main>
           )}
 
-          {/* FOOTER */}
           <footer className="border-t border-[#1E294B]/80 bg-[#0A0E1A] py-6 text-center text-[10px] text-slate-500 font-bold px-4">
-            <p>© 2026 Market Simulation Game Engine. All Rights Reserved. Optimized for Enterprise Human Resources.</p>
-            <p className="mt-1 opacity-75">Real-time GunDB Synchronization & Custom Native Dialog Shield.</p>
+            <p>© 2026 Market Simulation Game Engine. All Rights Reserved.</p>
           </footer>
-          
         </div>
       );
     }
 
-    // --- STREAMING_CHUNK: Bootstrapping React DOM renderer... ---
     const container = document.getElementById('root');
     const root = ReactDOM.createRoot(container);
     root.render(<App />);
