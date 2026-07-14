@@ -25,6 +25,8 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- 안정성이 검증된 분산 네트워크 GunDB 코어 -->
   <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 
   <style>
@@ -38,9 +40,7 @@
       0%, 100% { opacity: 1; transform: scale(1); filter: brightness(1.2); }
       50% { opacity: 0.3; transform: scale(0.97); filter: brightness(0.8); }
     }
-    .animate-custom-blink {
-      animation: customBlink 1.2s infinite ease-in-out;
-    }
+    .animate-custom-blink { animation: customBlink 1.2s infinite ease-in-out; }
 
     @keyframes neonPulse {
       0%, 100% { box-shadow: 0 0 8px rgba(99, 102, 241, 0.4); border-color: rgba(99, 102, 241, 0.6); }
@@ -79,21 +79,21 @@
       ]
     });
 
-    const MASTER_LIST_KEY = 'market_sim_pro_v3_master_list_v4';
+    const MASTER_LIST_KEY = 'market_sim_pro_v3_master_list_v5'; // 캐시 강제 무효화용 V5
 
-    const ShieldIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> );
-    const UsersIcon = () => ( <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg> );
-    const LockIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> );
-    const ClockIcon = ({ className }) => ( <svg className={`w-4 h-4 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
-    const PlayIcon = () => ( <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z" /></svg> );
-    const SquareIcon = () => ( <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6z" /></svg> );
-    const AwardIcon = () => ( <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg> );
-    const CheckCircleIcon = ({ className = "w-4 h-4" }) => ( <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
-    const ChevronLeftIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> );
-    const ChevronRightIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg> );
-    const DownloadIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> );
-    const EditIcon = () => ( <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> );
-    const AlertIcon = () => ( <svg className="w-5 h-5 text-amber-400 mr-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> );
+    const ShieldIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> );
+    const UsersIcon = () => ( <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg> );
+    const LockIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> );
+    const ClockIcon = ({ className }) => ( <svg className={`w-4 h-4 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
+    const PlayIcon = () => ( <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg> );
+    const SquareIcon = () => ( <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z" /></svg> );
+    const AwardIcon = () => ( <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg> );
+    const CheckCircleIcon = ({ className = "w-4 h-4" }) => ( <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> );
+    const ChevronLeftIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> );
+    const ChevronRightIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg> );
+    const DownloadIcon = () => ( <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> );
+    const EditIcon = () => ( <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> );
+    const AlertIcon = () => ( <svg className="w-5 h-5 text-amber-400 mr-2 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg> );
 
     const MARKET_STAGES = {
       1: { name: "초기 시장 (R1~3)", rules: "최고 단독 +120, 최고 동점 +60 / 최저 단독 -60, 최저 동점 -30", color: "border-cyan-500/80 text-cyan-400 bg-cyan-950/40", hex: "#06B6D4" },
@@ -209,7 +209,6 @@
       const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
       const [joinGameCode, setJoinGameCode] = useState('');
       
-      // Admin Dashboard States
       const [adminSessions, setAdminSessions] = useState({});
       const [isCreateGameModalOpen, setIsCreateGameModalOpen] = useState(false);
       const [newCourseName, setNewCourseName] = useState('');
@@ -220,6 +219,7 @@
       const [editingScoreTeamId, setEditingScoreTeamId] = useState(null);
       const [editScoreValue, setEditScoreValue] = useState('');
       const [showRoundResultPopup, setShowRoundResultPopup] = useState(false);
+      const [isJoining, setIsJoining] = useState(false); // 참가자 접속 로딩 스피너 제어
 
       const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -230,6 +230,9 @@
 
       useEffect(() => {
         if (userRole === 'admin_dashboard') {
+          const localSessions = JSON.parse(localStorage.getItem('LOCAL_ADMIN_SESSIONS_V5') || '{}');
+          setAdminSessions(localSessions);
+
           const listRef = gun.get(MASTER_LIST_KEY);
           const handler = (data, key) => {
             setAdminSessions(prev => {
@@ -237,9 +240,11 @@
               if (data && data !== "null") {
                 try {
                    next[key] = JSON.parse(data);
+                   localStorage.setItem('LOCAL_ADMIN_SESSIONS_V5', JSON.stringify(next));
                 } catch(e) {}
               } else {
                 delete next[key];
+                localStorage.setItem('LOCAL_ADMIN_SESSIONS_V5', JSON.stringify(next));
               }
               return next;
             });
@@ -247,6 +252,12 @@
           listRef.map().on(handler);
         }
       }, [userRole]);
+
+      useEffect(() => {
+        if (userRole === 'admin' && gameState.gameCode) {
+          localStorage.setItem('market_sim_pro_v3_session_' + gameState.gameCode, JSON.stringify(gameState));
+        }
+      }, [gameState, userRole]);
 
       useEffect(() => {
         if (!gameState.gameCode) return;
@@ -412,7 +423,6 @@
           }
           return team;
         });
-
         return { ...currentState, teams: updatedTeams, status: 'closed', timerActive: false };
       };
 
@@ -458,14 +468,23 @@
           timerActive: false,
         };
 
+        // 분산 DB 배포 및 로컬 백업
         gun.get('market_sim_pro_v3_session_' + code).get('global_state').put(JSON.stringify(initializedState));
+        localStorage.setItem('market_sim_pro_v3_session_' + code, JSON.stringify(initializedState));
         
-        gun.get(MASTER_LIST_KEY).get(code).put(JSON.stringify({
+        const sessionInfo = {
           gameCode: code,
           courseName: newCourseName,
           teamCount: newTeamCount,
           createdAt: Date.now()
-        }));
+        };
+
+        gun.get(MASTER_LIST_KEY).get(code).put(JSON.stringify(sessionInfo));
+        
+        const localSessions = JSON.parse(localStorage.getItem('LOCAL_ADMIN_SESSIONS_V5') || '{}');
+        localSessions[code] = sessionInfo;
+        localStorage.setItem('LOCAL_ADMIN_SESSIONS_V5', JSON.stringify(localSessions));
+        setAdminSessions(localSessions);
 
         showToast(`[${newCourseName}] 개설 완료 (코드: ${code})`);
         setIsCreateGameModalOpen(false);
@@ -474,13 +493,42 @@
       const handleParticipantJoin = (e) => {
         e.preventDefault();
         const codeUpper = joinGameCode.trim().toUpperCase();
-        
         if(!codeUpper) return;
 
-        // 블로킹 완전 해제: 코드를 입력하면 에러 없이 즉시 대기실로 진입시킴 (Optimistic UI)
-        setGameState(prev => ({ ...prev, gameCode: codeUpper }));
-        setUserRole('participant_select_team');
-        showToast(`[${codeUpper}] 세션 대기실 접속! 데이터를 동기화합니다.`, "info");
+        setIsJoining(true); // 로딩 스피너 활성화
+        let isResolved = false;
+
+        // 1. 최대 4.5초간 대기 타임아웃 (무한 로딩 방지 및 명확한 에러 안내)
+        const timeoutId = setTimeout(() => {
+          if (!isResolved) {
+            isResolved = true;
+            setIsJoining(false);
+            showToast("현재 개설되어 진행중인 세션이 아닙니다. 코드를 확인해주세요.", "error");
+          }
+        }, 4500);
+
+        // 2. GunDB 서버 통신 폴링
+        gun.get('market_sim_pro_v3_session_' + codeUpper).get('global_state').once((data) => {
+          if (isResolved) return; // 이미 타임아웃 처리된 경우 무시
+
+          if (data && data !== "null") {
+            try {
+              const parsedState = JSON.parse(data);
+              // 데이터가 실제 방 데이터인지 검증
+              if (parsedState && parsedState.gameCode === codeUpper) {
+                isResolved = true;
+                clearTimeout(timeoutId); // 타임아웃 캔슬
+                
+                setGameState(parsedState);
+                setUserRole('participant_select_team');
+                setIsJoining(false); // 로딩 해제
+                showToast(`[${codeUpper}] 세션 접속 완료. 그룹을 선택하세요.`);
+              }
+            } catch(err) {
+              console.error(err);
+            }
+          }
+        });
       };
 
       const handleUpdateTeamName = (teamId, newName) => {
@@ -556,7 +604,6 @@
               history: { ...t.history, [round]: { ...currentHist, score: earned } }
             };
           });
-
           const next = { ...prev, teams: updatedTeams, status: 'revealed' };
           gun.get('market_sim_pro_v3_session_' + prev.gameCode).get('global_state').put(JSON.stringify(next));
           return next;
@@ -638,7 +685,7 @@
       };
 
       const handleResetGame = () => {
-        triggerConfirm("경고: 진행 데이터 초기화", "주의! 현재 세션의 모든 라운드 진행 상황과 점수가 1라운드로 완전히 포맷됩니다. 그룹 설정은 유지됩니다. 진행하시겠습니까?", () => {
+        triggerConfirm("경고: 진행 데이터 초기화", "현재 세션의 모든 라운드 진행 상황과 점수가 1라운드로 완전히 포맷됩니다. 진행하시겠습니까?", () => {
           const generatedTeams = gameState.teams.map(t => ({
             ...t,
             score: 0,
@@ -684,7 +731,7 @@
 
         triggerConfirm(
           "의사결정 최종 전송", 
-          `선택하신 [${selectedCards.map(c => c.value).join(', ')}] 카드를 최종 제출하시겠습니까? 전송 이후에는 수정할 수 없습니다.`, 
+          `선택하신 [${selectedCards.map(c => c.value).join(', ')}] 카드를 제출하시겠습니까? 전송 이후에는 수정할 수 없습니다.`, 
           () => {
             const round = gameState.currentRound;
             
@@ -734,7 +781,7 @@
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Market_Leaderboard_${gameState.courseName}_Round_${gameState.currentRound}.csv`);
+        link.setAttribute("download", `Leaderboard_${gameState.courseName}_Round_${gameState.currentRound}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -826,7 +873,6 @@
             </div>
           )}
 
-          {}
           {userRole === 'landing' && (
             <div className="flex-grow flex items-center justify-center px-4 py-12">
               <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 md:p-8 shadow-2xl relative overflow-hidden text-center">
@@ -839,11 +885,11 @@
                 <div className="space-y-4 flex flex-col items-center">
                   <button onClick={() => setUserRole('participant_join_flow')} className="w-full max-w-sm h-24 bg-gradient-to-br from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white rounded-2xl text-base font-black shadow-lg shadow-indigo-900/30 transition-all flex flex-col items-center justify-center space-y-1 transform active:scale-[0.98]">
                     <span className="text-lg font-extrabold tracking-wide">👥 참가자(팀) 접속하기</span>
-                    <span className="text-[10px] text-indigo-200 font-medium">강사에게 부여받은 세션 코드로 입장</span>
+                    <span className="text-[10px] text-indigo-200 font-medium">부여받은 6자리 세션 코드로 입장</span>
                   </button>
                   <div className="w-full max-w-sm flex py-1 items-center justify-center"><span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">or</span></div>
                   <button onClick={() => setIsPasswordModalOpen(true)} className="w-full max-w-sm h-8 bg-[#161D30] hover:bg-[#1F294D] text-slate-400 hover:text-slate-200 border border-[#1E294D] rounded-xl text-xs font-bold transition-all flex items-center justify-center transform active:scale-[0.98]">
-                    <ShieldIcon /><span className="ml-1.5 font-black text-[11px] tracking-tight">강사 통제반 (Admin) 접속</span>
+                    <ShieldIcon /><span className="ml-1.5 font-black text-[11px] tracking-tight">Admin 접속</span>
                   </button>
                 </div>
               </div>
@@ -866,7 +912,6 @@
             </div>
           )}
 
-          {}
           {userRole === 'admin_dashboard' && (
             <main className="flex-grow max-w-5xl w-full mx-auto p-4 md:p-6 lg:p-8">
               <div className="flex justify-between items-center mb-6">
@@ -892,8 +937,30 @@
                     </div>
                     
                     <div className="flex space-x-2 mt-5">
-                      <button onClick={() => { triggerConfirm("세션 삭제", `[${session.courseName}] 과정을 영구 삭제하시겠습니까?`, () => { gun.get(MASTER_LIST_KEY).get(session.gameCode).put("null"); showToast("세션이 삭제되었습니다."); }); }} className="flex-1 py-2.5 bg-[#161D30] hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-[#1E294D] hover:border-red-500/30 rounded-xl text-[11px] font-black transition-colors">삭제</button>
-                      <button onClick={() => { setGameState(prev => ({ ...prev, gameCode: session.gameCode })); setUserRole('admin'); showToast(`${session.courseName} 제어반에 입장했습니다.`); }} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-black transition-colors shadow-md">입장</button>
+                      <button onClick={() => { triggerConfirm("세션 삭제", `[${session.courseName}] 과정을 영구 삭제하시겠습니까?`, () => { 
+                        gun.get(MASTER_LIST_KEY).get(session.gameCode).put("null"); 
+                        const localSessions = JSON.parse(localStorage.getItem('LOCAL_ADMIN_SESSIONS_V5') || '{}');
+                        delete localSessions[session.gameCode];
+                        localStorage.setItem('LOCAL_ADMIN_SESSIONS_V5', JSON.stringify(localSessions));
+                        setAdminSessions(localSessions);
+                        localStorage.removeItem('market_sim_pro_v3_session_' + session.gameCode);
+                        showToast("세션이 삭제되었습니다."); 
+                      }); }} className="flex-1 py-2.5 bg-[#161D30] hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-[#1E294D] hover:border-red-500/30 rounded-xl text-[11px] font-black transition-colors">삭제</button>
+                      
+                      <button onClick={() => { 
+                        const localStateStr = localStorage.getItem('market_sim_pro_v3_session_' + session.gameCode);
+                        if (localStateStr) {
+                          try {
+                            const parsedState = JSON.parse(localStateStr);
+                            setGameState(parsedState);
+                            gun.get('market_sim_pro_v3_session_' + session.gameCode).get('global_state').put(localStateStr);
+                          } catch(e) {}
+                        } else {
+                          setGameState(prev => ({ ...prev, gameCode: session.gameCode })); 
+                        }
+                        setUserRole('admin'); 
+                        showToast(`${session.courseName} 제어반에 입장했습니다.`); 
+                      }} className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-black transition-colors shadow-md">입장</button>
                     </div>
                   </div>
                 ))}
@@ -939,13 +1006,21 @@
             <div className="flex-grow flex items-center justify-center px-4 py-12">
               <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 shadow-xl text-center">
                 <h3 className="text-sm font-black text-white mb-2">시뮬레이션 세션 참가</h3>
-                <p className="text-[11px] text-slate-400 mb-6 leading-relaxed font-semibold">강사가 안내한 6자리 세션 참가 코드(예: MK2047)를 기입하십시오.</p>
+                <p className="text-[11px] text-slate-400 mb-6 leading-relaxed font-semibold">강사 전용 화면에 활성화되어 있는 6자리 세션 참가 코드(예: MK2047)를 기입하십시오.</p>
                 <form onSubmit={handleParticipantJoin} className="space-y-4">
-                  <input type="text" required maxLength={6} value={joinGameCode} onChange={(e) => setJoinGameCode(e.target.value)} placeholder="MK0000" className="w-full px-4 py-3 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-base font-bold outline-none focus:border-indigo-500 text-center font-mono uppercase tracking-widest" />
-                  <div className="flex space-x-2">
-                    <button type="button" onClick={() => setUserRole('landing')} className="flex-1 py-3 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black transition-colors">메인으로</button>
-                    <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-xl text-xs font-black shadow-md transition-all active:scale-[0.98]">코드 검증 및 입장</button>
-                  </div>
+                  <input type="text" required maxLength={6} value={joinGameCode} onChange={(e) => setJoinGameCode(e.target.value)} disabled={isJoining} placeholder="MK0000" className="w-full px-4 py-3 border border-[#1E294D] bg-[#0B0F19] text-white rounded-xl text-base font-bold outline-none focus:border-indigo-500 text-center font-mono uppercase tracking-widest disabled:opacity-50" />
+                  
+                  {isJoining ? (
+                    <div className="bg-[#161D30] border border-[#1E294D] rounded-xl p-3 flex flex-col items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-2"></div>
+                      <span className="text-[10px] text-indigo-400 font-bold">과정 정보 동기화 중입니다...</span>
+                    </div>
+                  ) : (
+                    <div className="flex space-x-2">
+                      <button type="button" onClick={() => setUserRole('landing')} className="flex-1 py-3 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black transition-colors">메인으로</button>
+                      <button type="submit" className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-xl text-xs font-black shadow-md transition-all active:scale-[0.98]">코드 검증</button>
+                    </div>
+                  )}
                 </form>
               </div>
             </div>
@@ -954,7 +1029,7 @@
           {userRole === 'participant_select_team' && (
             <div className="flex-grow flex items-center justify-center px-4 py-12">
               <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 shadow-xl text-center">
-                <h3 className="text-sm font-black text-white mb-1">[{gameState.courseName || '과정 정보 동기화 중...'}] 참가팀 지정</h3>
+                <h3 className="text-sm font-black text-white mb-1">[{gameState.courseName || '과정 정보 동기화 완료'}] 참가팀 지정</h3>
                 <p className="text-[10px] text-slate-400 mb-6 leading-relaxed font-semibold">귀사에 지정된 학습 그룹(팀)을 목록에서 클릭하여 가상 장비 접속을 승인해 주십시오.<br/><span className="text-amber-400 text-[9px]">* 1인 1팀만 선택 가능하며 접속 시 잠금 처리됩니다.</span></p>
                 
                 {gameState.teams && gameState.teams.length > 0 ? (
@@ -989,11 +1064,7 @@
                   </div>
                 ) : (
                   <div className="py-12 flex flex-col items-center justify-center mb-6">
-                    <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
-                    <p className="text-xs text-indigo-300 font-black">세션 데이터를 실시간으로 수신 중입니다...</p>
-                    <p className="text-[10px] text-slate-500 mt-2 font-bold max-w-[200px] leading-relaxed">
-                      네트워크 상태에 따라 약간의 시간이 소요될 수 있습니다. 잘못된 코드를 입력하셨다면 하단 버튼을 눌러 돌아가세요.
-                    </p>
+                    <p className="text-xs text-red-400 font-black">세션 데이터를 불러올 수 없습니다.</p>
                   </div>
                 )}
 
@@ -1002,7 +1073,6 @@
             </div>
           )}
 
-          {}
           {userRole === 'gameplay' && (
             <main className="flex-grow max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">
               
