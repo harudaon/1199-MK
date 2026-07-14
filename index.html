@@ -71,10 +71,13 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    const gun = Gun([
-      'https://gun-manhattan.herokuapp.com/gun',
-      'https://peer.wall.org/gun'
-    ]);
+    const gun = Gun({
+      peers: [
+        'https://gun-rs.iris.to/gun',
+        'https://relay.peer.ooo/gun',
+        'https://peer.wall.org/gun'
+      ]
+    });
 
     const MASTER_LIST_KEY = 'market_sim_pro_v3_master_list_v4';
 
@@ -474,37 +477,10 @@
         
         if(!codeUpper) return;
 
-        showToast("세션 데이터를 동기화 중입니다. 잠시만 기다려주세요...", "info");
-
-        let isFound = false;
-        const sessionRef = gun.get('market_sim_pro_v3_session_' + codeUpper).get('global_state');
-        
-        // GunDB 네트워크 지연(지각 수신) 대비 타임아웃 설정 (2.5초 대기)
-        const timeoutId = setTimeout(() => {
-          if (!isFound) {
-            sessionRef.off();
-            showToast("현재 개설되어 진행중인 세션 코드가 아닙니다. 코드를 확인해주세요.", "error");
-          }
-        }, 2500);
-
-        // once() 대신 on()을 사용하여 지연된 데이터 수신 처리
-        sessionRef.on((data) => {
-          if (!isFound && data && data !== "null") {
-            try {
-              const sessionObj = JSON.parse(data);
-              if (sessionObj && sessionObj.gameCode === codeUpper) {
-                isFound = true;
-                clearTimeout(timeoutId);
-                sessionRef.off(); // 검증 성공 시 즉시 리스너 해제 (중복 트리거 방지)
-                setGameState(sessionObj);
-                setUserRole('participant_select_team');
-                showToast(`세션 검증 성공! [${sessionObj.courseName}] 그룹을 선택하십시오.`);
-              }
-            } catch(err) {
-              console.error("Session parse error", err);
-            }
-          }
-        });
+        // 블로킹 완전 해제: 코드를 입력하면 에러 없이 즉시 대기실로 진입시킴 (Optimistic UI)
+        setGameState(prev => ({ ...prev, gameCode: codeUpper }));
+        setUserRole('participant_select_team');
+        showToast(`[${codeUpper}] 세션 대기실 접속! 데이터를 동기화합니다.`, "info");
       };
 
       const handleUpdateTeamName = (teamId, newName) => {
@@ -978,40 +954,50 @@
           {userRole === 'participant_select_team' && (
             <div className="flex-grow flex items-center justify-center px-4 py-12">
               <div className="max-w-md w-full bg-[#121829] rounded-3xl border border-[#1E294D] p-6 shadow-xl text-center">
-                <h3 className="text-sm font-black text-white mb-1">[{gameState.courseName}] 참가팀 지정</h3>
+                <h3 className="text-sm font-black text-white mb-1">[{gameState.courseName || '과정 정보 동기화 중...'}] 참가팀 지정</h3>
                 <p className="text-[10px] text-slate-400 mb-6 leading-relaxed font-semibold">귀사에 지정된 학습 그룹(팀)을 목록에서 클릭하여 가상 장비 접속을 승인해 주십시오.<br/><span className="text-amber-400 text-[9px]">* 1인 1팀만 선택 가능하며 접속 시 잠금 처리됩니다.</span></p>
                 
-                <div className="grid grid-cols-2 gap-2.5 max-h-[280px] overflow-y-auto mb-6 pr-1">
-                  {gameState.teams.map(team => (
-                    <button
-                      key={team.id}
-                      disabled={team.isOccupied}
-                      onClick={() => {
-                        const nextTeams = gameState.teams.map(t => t.id === team.id ? { ...t, isOccupied: true } : t);
-                        const nextState = { ...gameState, teams: nextTeams };
-                        gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state').put(JSON.stringify(nextState));
-                        
-                        setSelectedTeamId(team.id);
-                        setUserRole('gameplay');
-                        showToast(`${team.name} 대시보드 인터페이스로 기동합니다.`);
-                      }}
-                      className={`p-3.5 rounded-xl border text-xs font-black transition-all text-center flex flex-col items-center justify-center ${
-                        team.isOccupied 
-                          ? 'bg-[#0B0F19] border-[#1E294D]/50 text-slate-600 cursor-not-allowed opacity-50'
-                          : 'border-[#1E294D] bg-[#161D30] hover:bg-[#1E294D] hover:border-indigo-400 text-slate-200 active:scale-95'
-                      }`}
-                    >
-                      <span>{team.name}</span>
-                      {team.isOccupied ? (
-                        <span className="text-[9px] text-red-400 font-bold mt-1">입장 마감 (접속중)</span>
-                      ) : (
-                        <span className="text-[9px] text-indigo-400 font-bold mt-1">입장 가능</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                {gameState.teams && gameState.teams.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2.5 max-h-[280px] overflow-y-auto mb-6 pr-1">
+                    {gameState.teams.map(team => (
+                      <button
+                        key={team.id}
+                        disabled={team.isOccupied}
+                        onClick={() => {
+                          const nextTeams = gameState.teams.map(t => t.id === team.id ? { ...t, isOccupied: true } : t);
+                          const nextState = { ...gameState, teams: nextTeams };
+                          gun.get('market_sim_pro_v3_session_' + gameState.gameCode).get('global_state').put(JSON.stringify(nextState));
+                          
+                          setSelectedTeamId(team.id);
+                          setUserRole('gameplay');
+                          showToast(`${team.name} 대시보드 인터페이스로 기동합니다.`);
+                        }}
+                        className={`p-3.5 rounded-xl border text-xs font-black transition-all text-center flex flex-col items-center justify-center ${
+                          team.isOccupied 
+                            ? 'bg-[#0B0F19] border-[#1E294D]/50 text-slate-600 cursor-not-allowed opacity-50'
+                            : 'border-[#1E294D] bg-[#161D30] hover:bg-[#1E294D] hover:border-indigo-400 text-slate-200 active:scale-95'
+                        }`}
+                      >
+                        <span>{team.name}</span>
+                        {team.isOccupied ? (
+                          <span className="text-[9px] text-red-400 font-bold mt-1">입장 마감 (접속중)</span>
+                        ) : (
+                          <span className="text-[9px] text-indigo-400 font-bold mt-1">입장 가능</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-12 flex flex-col items-center justify-center mb-6">
+                    <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-xs text-indigo-300 font-black">세션 데이터를 실시간으로 수신 중입니다...</p>
+                    <p className="text-[10px] text-slate-500 mt-2 font-bold max-w-[200px] leading-relaxed">
+                      네트워크 상태에 따라 약간의 시간이 소요될 수 있습니다. 잘못된 코드를 입력하셨다면 하단 버튼을 눌러 돌아가세요.
+                    </p>
+                  </div>
+                )}
 
-                <button onClick={() => setUserRole('participant_join_flow')} className="w-full py-2.5 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black">이전 단계로</button>
+                <button onClick={() => setUserRole('participant_join_flow')} className="w-full py-2.5 bg-[#161D30] text-slate-400 rounded-xl text-xs font-black">이전 단계로 (코드 재입력)</button>
               </div>
             </div>
           )}
